@@ -145,14 +145,4 @@ public class SJF extends Process {
          System.out.println("There are no processes in the queue.");
       }
    }
-
-   public void addToProcessList(SJF process) {
-      for (int i = 0; i < Main.numProcess; i++) {
-         if (Main.ProcessLink[i][Field.id.getValue()] == process.getId()) {
-            Main.ProcessLink[i][Field.turnAroundTime.getValue()] = process.getTurnAroundTime();
-            Main.ProcessLink[i][Field.waitingTime.getValue()] = process.getWaitingTime();
-            Main.ProcessLink[i][Field.responseTime.getValue()] = process.getResponseTime();
-         }
-      }
-   }
 }

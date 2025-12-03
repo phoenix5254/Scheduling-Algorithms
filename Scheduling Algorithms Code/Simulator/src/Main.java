@@ -126,7 +126,7 @@ public class Main {
         }
         return ProcessLink;
     }
-    static String toStringAllProcesses() {
+    static String toStringAllProcesses(int [] avg) {
         StringBuilder sb = new StringBuilder();
         sb.append("Process:\n");
         if (ProcessLink == null) {
@@ -143,6 +143,10 @@ public class Main {
             sb.append("Start Time: " + ProcessLink[p][Field.startTime.getValue()] + ", ");
             sb.append("Response Time: " + ProcessLink[p][Field.responseTime.getValue()] + ",");
             sb.append("\n");
+            // avg(avgWT,avgTT,avgRT) shows average waiting time, average turn around time and average response time
+            sb.append("The average waiting time is: " + avg[0] + "\n");
+            sb.append("The average turn around time is: " + avg[1] + "\n");
+            sb.append("The average response time is: " + avg[2] + "\n");
         }
         return sb.toString();
     }
@@ -172,18 +176,22 @@ public class Main {
                 choice = scanner.nextInt();
                 switch (choice) {
                     case 1: // FCFS
-                        
+                        //Calculate the averages and Display after 
+                        toStringAllProcesses(int [] avgs=findAllAverages());
                         break;
                     case 2:// SJF
                         SJF sjf= new SJF(ProcessLink);
                         sjf.sjfScheduling();
-                        int [] avgs=findAllAverages();
+                        //Calculate the averages and Display after 
+                        toStringAllProcesses(int [] avgs=findAllAverages());
                         break;
                     case 3:// Priority Scheduling
-                        
+                        //Calculate the averages and Display after 
+                        toStringAllProcesses(int [] avgs=findAllAverages());
                         break;
                     case 4: // MLQ
-                        
+                        //Calculate the averages and Display after 
+                        toStringAllProcesses(int [] avgs=findAllAverages());
                         break;
                     case 5:// Exit
                         System.out.println("Goodbye!");

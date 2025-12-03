@@ -121,29 +121,16 @@ public abstract class Process {
 
     // Other Methods
     public void ViewProcessByObject() {
-        System.out.println("Process ID: " + id + " Arrival Time: " + arrivalTime + " Burst Time: " + burstTime
-                + " Priority: " + priority);
+        System.out.println("Process ID: " + id + " Arrival Time: " + arrivalTime + " Burst Time: " + burstTime+ " Priority: " + priority);
     }
 
-
-    String toStringAllProcesses() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Processes:\n");
-        if (Main.ProcessLink== null) {
-            sb.append("");
-            return sb.toString();
-        }
-        for (int p = 0; p < Main.ProcessLink.length; p++) {
-            sb.append(Main.ProcessLink[p][Field.id.getValue()] + ") ");
-            sb.append("Arrival Time: " + Main.ProcessLink[p][Field.arrivalTime.getValue()] + ", ");
-            sb.append("Burst Time: " + Main.ProcessLink[p][Field.burstTime.getValue()] + ", ");
-            sb.append("Priority: " + Main.ProcessLink[p][Field.priority.getValue()] + ", ");
-            sb.append("Waiting Time: " + Main.ProcessLink[p][Field.waitingTime.getValue()] + ", ");
-            sb.append("Turn Around Time: " + Main.ProcessLink[p][Field.turnAroundTime.getValue()] + ", ");
-            sb.append("Start Time: " + Main.ProcessLink[p][Field.startTime.getValue()] + ", ");
-            sb.append("Response Time: " + Main.ProcessLink[p][Field.responseTime.getValue()] + ",");
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
+    public void addToProcessList(<t> process) {
+      for (int i = 0; i < Main.numProcess; i++) {
+         if (Main.ProcessLink[i][Field.id.getValue()] == process.getId()) {
+            Main.ProcessLink[i][Field.turnAroundTime.getValue()] = process.getTurnAroundTime();
+            Main.ProcessLink[i][Field.waitingTime.getValue()] = process.getWaitingTime();
+            Main.ProcessLink[i][Field.responseTime.getValue()] = process.getResponseTime();
+         }
+      }
+   }
 }
