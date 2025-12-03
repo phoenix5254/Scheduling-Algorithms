@@ -166,9 +166,12 @@ public class Main {
                     case 3:// Priority Scheduling
                         
                         break;
-                    case 4: // Round Robin
+                    case 4: // MLQ
                         
                         break;
+                    case 5:// Exit
+                        System.out.println("Goodbye!");
+                        System.exit(0);
                     default: // Invalid choice
                         System.out.println("Invalid choice. Please select a valid option between 0 and 5.");
                 }
@@ -176,7 +179,7 @@ public class Main {
                 System.out.println("Invalid input. Only integers are allowed. Please enter a number.");
                 scanner.next(); // Clear invalid input
             }
-        } while (choice < 1 || choice > 4);
+        } while (choice < 1 || choice > 5);
         System.out.println("Simulation completed.");
     }
     static void mainPage(){

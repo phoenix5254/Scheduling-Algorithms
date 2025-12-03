@@ -46,7 +46,7 @@ public class SJF extends Process {
          int at = Main.ProcessLink[i][Field.arrivalTime.getValue()];
          int bt = Main.ProcessLink[i][Field.burstTime.getValue()];
          int pid = Main.ProcessLink[i][Field.id.getValue()];
-         procList.add(new int[] { pid, at, bt }); // store original index as 4th element (optional)
+         procList.add(new int[] { pid, at, bt }); 
       }
 
       int remaining = procList.size();
@@ -65,7 +65,7 @@ public class SJF extends Process {
          }
 
          if (ready.isEmpty()) {
-            // advance time to next arrival (more efficient than time++)
+            // advance time to next arrival 
             int nextArrival = Integer.MAX_VALUE;
             for (int[] row : procList) {
                if (row != null && row[1] < nextArrival) {
@@ -83,11 +83,11 @@ public class SJF extends Process {
          // Choose shortest job (min burst). Tie-breaker: earlier arrival, then lower
          // pid.
          int[] chosen = ready.get(0);
-         for (int[] cand : ready) {
-            if (cand[2] < chosen[2] ||
-                  (cand[2] == chosen[2] && cand[1] < chosen[1]) ||
-                  (cand[2] == chosen[2] && cand[1] == chosen[1] && cand[0] < chosen[0])) {
-               chosen = cand;
+         for (int[] current : ready) {
+            if (current[2] < chosen[2] ||
+                  (current[2] == chosen[2] && current[1] < chosen[1]) ||
+                  (current[2] == chosen[2] && current[1] == chosen[1] && current[0] < chosen[0])) {
+               chosen = current;
             }
          }
 
