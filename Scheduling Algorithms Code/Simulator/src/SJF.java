@@ -11,13 +11,13 @@ public class SJF extends Process {
 
    public SJF(int at, int bt) {
       super(at, bt);
-      sjf = Main.ProcessLink; // Copying Main.ProcessLink to sjf array
+      sjf = Main.ProcessLink; // Copying ProcessLink to sjf array
    }
 
    public SJF(int at, int bt, int id) {
       super(at, bt);
       this.id = id;
-      sjf = Main.ProcessLink; // Copying Main.ProcessLink to sjf array
+      sjf = Main.ProcessLink; // Copying ProcessLink to sjf array
    }
 
    public SJF(SJF obj) {
@@ -80,8 +80,7 @@ public class SJF extends Process {
             continue;
          }
 
-         // Choose shortest job (min burst). Tie-breaker: earlier arrival, then lower
-         // pid.
+         // Choose shortest job (min burst). Tie-breaker: earlier arrival, then lower pid.
          int[] chosen = ready.get(0);
          for (int[] current : ready) {
             if (current[2] < chosen[2] ||
@@ -91,7 +90,7 @@ public class SJF extends Process {
             }
          }
 
-         // Create an SJF process object using chosen values.
+         // Create a SJF process object using chosen values.
          // Note: this constructor sets this.id (SJF.id) so getId() override (below) will
          // return it.
          SJF proc = new SJF(chosen[1], chosen[2], chosen[0]);
@@ -124,7 +123,6 @@ public class SJF extends Process {
             }
          }
       }
-
       // Print the queued processes (displayQueue uses your Queue implementation)
       if (displayQueue.getFront() != null) {
          // iterate nodes via getFront() and next-node chain

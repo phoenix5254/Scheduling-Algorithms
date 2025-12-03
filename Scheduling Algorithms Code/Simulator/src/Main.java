@@ -146,6 +146,21 @@ public class Main {
         }
         return sb.toString();
     }
+          public static int[] findAllAverages() {
+            int avgWT,avgTT,avgRT;
+            avgWT = avgTT = avgRT = 0;
+            for (int i = 0; i < numProcess; i++) {
+                avgWT += ProcessLink[i][Field.waitingTime.getValue()];
+                avgTT += ProcessLink[i][Field.turnAroundTime.getValue()];
+                avgRT += ProcessLink[i][Field.responseTime.getValue()];
+            }
+            avgWT /= numProcess;
+            avgTT /= numProcess;
+            avgRT /= numProcess;
+            int [] avg = {avgWT,avgTT,avgRT};
+            return avg;
+            
+        }
     static void selectScheduler(){       
         do {
             try {
@@ -162,6 +177,7 @@ public class Main {
                     case 2:// SJF
                         SJF sjf= new SJF(ProcessLink);
                         sjf.sjfScheduling();
+                        int [] avgs=findAllAverages();
                         break;
                     case 3:// Priority Scheduling
                         
