@@ -106,3 +106,13 @@ public class MLQ {
         }
     }
 }
+
+
+/*
+CASE
+     System.out.println("\n--- MLQ Results ---");
+                        MLQ mlq = new MLQ(2); // Time quantum for medium priority queue is 2
+                        for (int[] processData : ProcessLink) {
+                            Process p = new Process(processData);
+                            mlq.addProcess(p);
+*/
