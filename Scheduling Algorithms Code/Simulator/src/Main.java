@@ -174,7 +174,6 @@ public class Main {
             sb.append(" | Turn Around Time: " + ProcessLink[p][Field.turnAroundTime.getValue()]);
             sb.append(" | Start Time: " + ProcessLink[p][Field.startTime.getValue()]);
             sb.append(" | Response Time: " + ProcessLink[p][Field.responseTime.getValue()]);
-            sb.append(" | Priority: " + ProcessLink[p][Field.priority.getValue()]);
             sb.append("\n");
         }
         if (avg != null && avg.length >= 3) {
@@ -244,7 +243,7 @@ public class Main {
                 System.out.println("1. First-Come, First-Served (FCFS)");
                 System.out.println("2. Shortest Job First (SJF)");
                 System.out.println("3. Priority Scheduling");
-                System.out.println("4. Round Robin (RR)");
+                System.out.println("4. MLQ");
                 System.out.println("5. Exit");
                 System.out.print("Enter choice: ");
                 choice = scanner.nextInt();
@@ -265,8 +264,7 @@ public class Main {
                         break;
                     case 3: // Priority Scheduling
                         System.out.println("\n--- Priority Scheduling Results ---");
-                        PreemptivePriority pp = new PreemptivePriority(ProcessLink);
-                        pp.PriorityScheduling();
+                        PriorityScheduling.runPriorityScheduling();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 4: // MLQ

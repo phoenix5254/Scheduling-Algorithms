@@ -1,4 +1,4 @@
-public abstract class Process {
+public class Process {
     // unique id generator (static), and per-instance id
     private static int nextId = 0;       // used only to generate new ids
     protected int id;                    // instance-level id
