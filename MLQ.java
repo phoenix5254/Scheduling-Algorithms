@@ -1,36 +1,31 @@
+import java.util.HashMap;
+import java.util.Map;
 
-
-public class MLQ extends Process
-{
- // Three queues for the three levels
+public class MLQ {
+    // Three queues for the three levels
     private Queue<Process> highPriorityQueue;
     private Queue<Process> mediumPriorityQueue;
     private Queue<Process> lowPriorityQueue;
 
     // Time quantum for Round Robin in the medium priority queue
     private int timeQuantum;
-    private int id;
+
+    // To store original burst times for calculations
+    private Map<Integer, Integer> originalBurstTimes;
 
     public MLQ(int timeQuantum) {
         this.highPriorityQueue = new Queue<>();
         this.mediumPriorityQueue = new Queue<>();
         this.lowPriorityQueue = new Queue<>();
         this.timeQuantum = timeQuantum;
-    }
-
-    public MLQ(int[][] processLink) {
-        super(processLink);
-    }
-
-    @Override
-    public int getId() {
-        if (this.id != 0) {
-            return this.id;
-        }
-        return super.getId();
+        this.originalBurstTimes = new HashMap<>();
     }
 
     public void addProcess(Process process) {
+        if (process == null) {
+            return;
+        }
+        originalBurstTimes.put(process.getId(), process.getBurstTime());
         switch (process.getPriority()) {
             case 1:
                 highPriorityQueue.Enqueue(process);
@@ -48,65 +43,66 @@ public class MLQ extends Process
     }
 
     public void schedule() {
+        int currentTime = 0;
+
         while (!highPriorityQueue.isEmpty() || !mediumPriorityQueue.isEmpty() || !lowPriorityQueue.isEmpty()) {
             // Process high priority queue (FCFS)
             if (!highPriorityQueue.isEmpty()) {
                 Process p = highPriorityQueue.Dequeue();
                 if (p == null) continue;
-                System.out.println("Executing process " + p.getId() + " from high priority queue.");
-                // Simulate execution
-                try {
-                    Thread.sleep(p.getBurstTime());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+
+                if (p.getStartTime() == null) {
+                    p.setStartTime(currentTime);
+                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
                 }
+
+                System.out.println("Executing process " + p.getId() + " from high priority queue.");
+                currentTime += p.getBurstTime();
+                
+                p.setTurnAroundTime(currentTime - p.getArrivalTime());
+                p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
+                p.addToProcessList(p);
             }
             // Process medium priority queue (Round Robin)
             else if (!mediumPriorityQueue.isEmpty()) {
                 Process p = mediumPriorityQueue.Dequeue();
                 if (p == null) continue;
+
+                if (p.getStartTime() == null) {
+                    p.setStartTime(currentTime);
+                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
+                }
+
                 System.out.println("Executing process " + p.getId() + " from medium priority queue.");
                 if (p.getBurstTime() > timeQuantum) {
-                    try {
-                        Thread.sleep(timeQuantum);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    currentTime += timeQuantum;
                     p.setBurstTime(p.getBurstTime() - timeQuantum);
                     mediumPriorityQueue.Enqueue(p); // Re-queue the process
                 } else {
-                    try {
-                        Thread.sleep(p.getBurstTime());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    currentTime += p.getBurstTime();
+                    p.setBurstTime(0);
+                    p.setTurnAroundTime(currentTime - p.getArrivalTime());
+                    p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
+                    p.addToProcessList(p);
                 }
             }
             // Process low priority queue (FCFS)
             else if (!lowPriorityQueue.isEmpty()) {
                 Process p = lowPriorityQueue.Dequeue();
                 if (p == null) continue;
-                System.out.println("Executing process " + p.getId() + " from low priority queue.");
-                try {
-                    Thread.sleep(p.getBurstTime());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+
+                if (p.getStartTime() == null) {
+                    p.setStartTime(currentTime);
+                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
                 }
+                
+                System.out.println("Executing process " + p.getId() + " from low priority queue.");
+                currentTime += p.getBurstTime();
+
+                p.setTurnAroundTime(currentTime - p.getArrivalTime());
+                p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
+                p.addToProcessList(p);
             }
         }
     }
-
-    
 }
-
-
-                  /* case 4: //MLQ
-                        MLQ mlq = new MLQ(10); // Time quantum of 10
-                        for (int[] processData : ProcessLink) {
-                            mlq.addProcess(new MLQ(new int[][]{processData}));
-                        }
-                        mlq.schedule();
-                        
-                        
-                        break;
-                    */
