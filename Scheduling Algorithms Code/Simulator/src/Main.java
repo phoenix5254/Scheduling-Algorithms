@@ -9,6 +9,18 @@ public class Main {
         scanner.close();
     }
 
+    static void mainPage() {
+        NumOfProcess();
+        if (numProcess > 0) {
+            priority(numProcess, isPriority());
+            System.out.println("\nInitial Input:");
+            System.out.println(toStringAllProcesses());
+            selectScheduler();
+        } else {
+            System.out.println("No processes entered. Exiting.");
+        }
+        System.out.println("Simulation completed.");
+    }
     static int[][] ProcessLink; // 2D array to store processes
     static final int attributes = 9; // Number of attributes in Process
     static int numProcess = -1;
@@ -141,23 +153,6 @@ public class Main {
         }
     }
 
- /*  static int[][] sort() {
-        if (ProcessLink == null || ProcessLink.length <= 1)
-            return ProcessLink;
-        int n = ProcessLink.length;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                if (ProcessLink[j][Field.arrivalTime.getValue()] > ProcessLink[j + 1][Field.arrivalTime.getValue()]) {
-                    int[] temp = ProcessLink[j];
-                    ProcessLink[j] = ProcessLink[j + 1];
-                    ProcessLink[j + 1] = temp;
-                }
-            }
-        }
-        return ProcessLink;
-    }
-    */
-
     static String toStringAllProcesses(float[] avg) {
         StringBuilder sb = new StringBuilder();
         sb.append("Process:\n");
@@ -258,7 +253,7 @@ public class Main {
                         break;
                     case 2: // SJF
                         System.out.println("\n--- SJF Results ---");
-                        SJF sjf = new SJF(ProcessLink);
+                        SJF sjf = new SJF();
                         sjf.sjfScheduling();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
@@ -269,7 +264,8 @@ public class Main {
                         break;
                     case 4: // MLQ
                         System.out.println("\n--- MLQ Results ---");
-                        // implement or call your RR scheduler here (ask for quantum, etc.)
+                        MLQ mlq = new MLQ(ProcessLink);
+                        mlq.schedule();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 5:
@@ -285,16 +281,5 @@ public class Main {
         } while (true);
     }
 
-    static void mainPage() {
-        NumOfProcess();
-        if (numProcess > 0) {
-            priority(numProcess, isPriority());
-            System.out.println("\nInitial Input:");
-            System.out.println(toStringAllProcesses());
-            selectScheduler();
-        } else {
-            System.out.println("No processes entered. Exiting.");
-        }
-        System.out.println("Simulation completed.");
-    }
+    
 }

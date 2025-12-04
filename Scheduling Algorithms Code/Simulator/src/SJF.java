@@ -1,6 +1,5 @@
 
 public class SJF extends Process {
-   private int[][] sjf;
    private int id;
 
    Queue<Process> queue = new Queue<Process>();
@@ -11,21 +10,15 @@ public class SJF extends Process {
 
    public SJF(int at, int bt) {
       super(at, bt);
-      sjf = Main.ProcessLink; // Copying ProcessLink to sjf array
    }
 
    public SJF(int at, int bt, int id) {
       super(at, bt);
       this.id = id;
-      sjf = Main.ProcessLink; // Copying ProcessLink to sjf array
    }
 
    public SJF(SJF obj) {
       super(obj);
-   }
-
-   public SJF(int[][] ProcessLink) {
-      sjf = Main.ProcessLink;
    }
 
    // inside SJF class

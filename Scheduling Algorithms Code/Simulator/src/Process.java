@@ -1,7 +1,7 @@
 public class Process {
     // unique id generator (static), and per-instance id
-    private static int nextId = 0;       // used only to generate new ids
-    protected int id;                    // instance-level id
+    private static int nextId = 0; // used only to generate new ids
+    protected int id; // instance-level id
 
     protected int arrivalTime;
     protected int burstTime;
@@ -17,7 +17,8 @@ public class Process {
     // Constructors
 
     // default: no new id created (rare)
-    public Process() { }
+    public Process() {
+    }
 
     // create a new Process and auto-generate an id
     public Process(int arrivalT, int burstT) {
@@ -38,7 +39,8 @@ public class Process {
     }
 
     // construct a Process from an existing ProcessLink row (no new id generated)
-    // pRow is a single row from Main.ProcessLink: {id, arrival, burst, ...} or similar
+    // pRow is a single row from Main.ProcessLink: {id, arrival, burst, ...} or
+    // similar
     public Process(int[] pRow) {
         // assume pRow uses Field indices; caller should provide correct row
         this.id = pRow[Field.id.getValue()];
@@ -48,16 +50,32 @@ public class Process {
         this.waitingTime = pRow[Field.waitingTime.getValue()];
         this.turnAroundTime = pRow[Field.turnAroundTime.getValue()];
         this.responseTime = pRow[Field.responseTime.getValue()];
-        this.startTime = pRow[Field.startTime.getValue()]; 
+        this.startTime = pRow[Field.startTime.getValue()];
         // ensure nextId never regresses below existing ids
-        if (this.id > nextId) nextId = this.id;
+        if (this.id > nextId)
+            nextId = this.id;
+    }
+
+    public Process(int[][] processLink) {
+        this.id = processLink[0][Field.id.getValue()];
+        this.arrivalTime = processLink[0][Field.arrivalTime.getValue()];
+        this.burstTime = processLink[0][Field.burstTime.getValue()];
+        this.priority = processLink[0][Field.priority.getValue()];
+        this.waitingTime = processLink[0][Field.waitingTime.getValue()];
+        this.turnAroundTime = processLink[0][Field.turnAroundTime.getValue()];
+        this.responseTime = processLink[0][Field.responseTime.getValue()];
+        this.startTime = processLink[0][Field.startTime.getValue()];
+        // ensure nextId never regresses below existing ids
+        if (this.id > nextId)
+            nextId = this.id;
     }
 
     // construct a Process when you already know the intended id (useful for SJF)
     public Process(int arrivalT, int burstT, int givenId, boolean useGivenId) {
         if (useGivenId) {
             this.id = givenId;
-            if (this.id > nextId) nextId = this.id;
+            if (this.id > nextId)
+                nextId = this.id;
         } else {
             this.id = ++nextId;
         }
@@ -80,54 +98,95 @@ public class Process {
     }
 
     // Getters and Setters (id is instance-level)
-    public int getId() { return id; }
+    public int getId() {
+        return id;
+    }
 
     // You rarely need setId, but make it available
     public void setId(int id) {
         this.id = id;
-        if (id > nextId) nextId = id;
+        if (id > nextId)
+            nextId = id;
     }
 
-    public int getArrivalTime() { return arrivalTime; }
-    public void setArrivalTime(int arrivalTime) { this.arrivalTime = arrivalTime; }
+    public int getArrivalTime() {
+        return arrivalTime;
+    }
 
-    public int getBurstTime() { return burstTime; }
-    public void setBurstTime(int burstTime) { this.burstTime = burstTime; }
+    public void setArrivalTime(int arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
 
-    public int getPriority() { return priority; }
-    public void setPriority(int priority) { this.priority = priority; }
+    public int getBurstTime() {
+        return burstTime;
+    }
 
-    public int getWaitingTime() { return waitingTime; }
-    public void setWaitingTime(int waitingTime) { this.waitingTime = waitingTime; }
+    public void setBurstTime(int burstTime) {
+        this.burstTime = burstTime;
+    }
 
-    public int getTurnAroundTime() { return turnAroundTime; }
-    public void setTurnAroundTime(int turnAroundTime) { this.turnAroundTime = turnAroundTime; }
+    public int getPriority() {
+        return priority;
+    }
 
-    public int getResponseTime() { return responseTime; }
-    public void setResponseTime(int responseTime) { this.responseTime = responseTime; }
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
-    public Integer getStartTime() { return startTime; }
-    public void setStartTime(Integer startTime) { this.startTime = startTime; }
+    public int getWaitingTime() {
+        return waitingTime;
+    }
+
+    public void setWaitingTime(int waitingTime) {
+        this.waitingTime = waitingTime;
+    }
+
+    public int getTurnAroundTime() {
+        return turnAroundTime;
+    }
+
+    public void setTurnAroundTime(int turnAroundTime) {
+        this.turnAroundTime = turnAroundTime;
+    }
+
+    public int getResponseTime() {
+        return responseTime;
+    }
+
+    public void setResponseTime(int responseTime) {
+        this.responseTime = responseTime;
+    }
+
+    public Integer getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Integer startTime) {
+        this.startTime = startTime;
+    }
 
     // view
     public void ViewProcessByObject() {
-        System.out.println("Process ID: " + id + " Arrival Time: " + arrivalTime + " Burst Time: " + burstTime + " Priority: " + priority);
+        System.out.println("Process ID: " + id + " Arrival Time: " + arrivalTime + " Burst Time: " + burstTime
+                + " Priority: " + priority);
     }
 
     /**
      * Update Main.ProcessLink row for the given Process process.
      * Matches by process ID (Field.id). Writes:
-     *   - arrivalTime, burstTime (optional; safe to set)
-     *   - startTime, waitingTime, responseTime, turnAroundTime
+     * - arrivalTime, burstTime (optional; safe to set)
+     * - startTime, waitingTime, responseTime, turnAroundTime
      */
     public void addToProcessList(Process process) {
-        if (process == null || Main.ProcessLink == null) return;
+        if (process == null || Main.ProcessLink == null)
+            return;
         int pid = process.getId();
         for (int i = 0; i < Main.numProcess; i++) {
             if (Main.ProcessLink[i][Field.id.getValue()] == pid) {
                 Main.ProcessLink[i][Field.arrivalTime.getValue()] = process.getArrivalTime();
                 Main.ProcessLink[i][Field.burstTime.getValue()] = process.getBurstTime();
-                Main.ProcessLink[i][Field.startTime.getValue()] = process.getStartTime() == null ? 0 : process.getStartTime();
+                Main.ProcessLink[i][Field.startTime.getValue()] = process.getStartTime() == null ? 0
+                        : process.getStartTime();
                 Main.ProcessLink[i][Field.waitingTime.getValue()] = process.getWaitingTime();
                 Main.ProcessLink[i][Field.responseTime.getValue()] = process.getResponseTime();
                 Main.ProcessLink[i][Field.turnAroundTime.getValue()] = process.getTurnAroundTime();
