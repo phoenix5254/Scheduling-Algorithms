@@ -181,6 +181,8 @@ public class Main {
             sb.append(String.format("\nThe average waiting time is: %.2f%n", avg[0]));
             sb.append(String.format("The average turn around time is: %.2f%n", avg[1]));
             sb.append(String.format("The average response time is: %.2f%n", avg[2]));
+            sb.append(String.format("CPU Utilization: %.2f%n", avg[3]));
+            sb.append(String.format("Throughput: %.4f%n", avg[4]));
         }
         return sb.toString();
     }
@@ -191,7 +193,7 @@ public class Main {
 
     public static float[] findAllAverages() {
         if (numProcess <= 0 || ProcessLink == null || ProcessLink.length == 0) {
-            return new float[] { 0f, 0f, 0f };
+            return new float[] { 0f, 0f, 0f, 0f, 0f };
         }
         float avgWT = 0f, avgTT = 0f, avgRT = 0f;
         for (int i = 0; i < numProcess; i++) {
@@ -206,8 +208,28 @@ public class Main {
         avgWT = Math.round(avgWT * 100f) / 100f;
         avgTT = Math.round(avgTT * 100f) / 100f;
         avgRT = Math.round(avgRT * 100f) / 100f;
-        return new float[] { avgWT, avgTT, avgRT };
+        float[] result= find_Util_Throughput();
+        return new float[] { avgWT, avgTT, avgRT, result[0], result[1] };
     }
+   public static float[] find_Util_Throughput() {
+
+    float totalBurst = 0;
+    float totalFinishTime = 0;
+
+    for (int i = 0; i < numProcess; i++) {
+        totalBurst += ProcessLink[i][Field.burstTime.getValue()];
+        totalFinishTime = Math.max(totalFinishTime, ProcessLink[i][Field.turnAroundTime.getValue()]);
+    }
+
+    float cpuUtil = (totalBurst / totalFinishTime) * 100f;
+    float throughput = numProcess / totalFinishTime;
+
+    cpuUtil = Math.round(cpuUtil * 100f) / 100f;
+    throughput = Math.round(throughput * 100f) / 100f;
+
+    return new float[]{cpuUtil, throughput};
+}
+
 
    
     static void selectScheduler() {
@@ -230,6 +252,8 @@ public class Main {
 
                 switch (choice) {
                     case 1: // FCFS
+                        FCFS fcfs = new FCFS();
+                        fcfs.fcfsScheduling();
                         System.out.println("\n--- FCFS Results ---");
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
