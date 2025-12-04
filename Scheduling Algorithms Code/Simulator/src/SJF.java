@@ -25,7 +25,6 @@ public class SJF extends Process {
    }
 
    public SJF(int[][] ProcessLink) {
-      super(Main.ProcessLink);
       sjf = Main.ProcessLink;
    }
 
@@ -123,7 +122,7 @@ public class SJF extends Process {
             }
          }
       }
-      // Print the queued processes (displayQueue uses your Queue implementation)
+      /* Print the queued processes (displayQueue uses your Queue implementation)
       if (displayQueue.getFront() != null) {
          // iterate nodes via getFront() and next-node chain
          Node<Process> cur = displayQueue.getFront();
@@ -144,5 +143,6 @@ public class SJF extends Process {
       } else {
          System.out.println("There are no processes in the queue.");
       }
+   } */
    }
 }

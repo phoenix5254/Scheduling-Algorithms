@@ -1,123 +1,153 @@
-
 import java.util.InputMismatchException;
 
 public class Main {
     static java.util.Scanner scanner = new java.util.Scanner(System.in);
-    public static void main(String[] args) throws Exception {
+
+    public static void main(String[] args) {
         System.out.println("Scheduler Simulation Started");
         mainPage();
-       
+        scanner.close();
     }
-    static int[][] ProcessLink;// 2D array to store processes
+
+    static int[][] ProcessLink; // 2D array to store processes
     static final int attributes = 9; // Number of attributes in Process
     static int numProcess = -1;
-    static int choice=0; // to track which scheduler is selected
+    static int choice = 0; // to track which scheduler is selected
 
-    int getNumProcess() {return numProcess;}
-    public static int [][] getProcessLink(){ return ProcessLink; }
+    int getNumProcess() {
+        return numProcess;
+    }
+
+    public static int[][] getProcessLink() {
+        return ProcessLink;
+    }
 
     static void NumOfProcess() {
         do {
             try {
-                System.out.println("Enter the number of processes:");
+                System.out.print("Enter the number of processes: ");
                 numProcess = scanner.nextInt();
-                // Throws exception if negative number entered
+                scanner.nextLine(); // consume newline
                 if (numProcess < 0) {
                     throw new MyException("Number of processes cannot be negative");
                 }
-            } catch (MyException me){
+                break;
+            } catch (MyException me) {
                 System.out.println(me.getMessage());
-            }catch (InputMismatchException e) {
+                scanner.nextLine();
+            } catch (InputMismatchException e) {
                 System.out.println("Invalid input. Only integers are allowed. Please enter a number.");
-                scanner.next();
+                scanner.nextLine();
             } catch (Exception e) {
-                System.out.println(e.getMessage());
-                scanner.next();
+                System.out.println("Error: " + e.getMessage());
+                scanner.nextLine();
             }
-        } while (numProcess < 0);
-        ProcessLink = new int[numProcess][attributes]; // Initialize ProcessLink array to hold process data
+        } while (true);
+
+        ProcessLink = new int[numProcess][attributes];
     }
 
     static boolean isPriority() {
-        boolean isvalid = false;
-        do {
+        while (true) {
             try {
-                System.out.println("Will the Process have a priority? (Y/N)");
-                char priority = scanner.next().charAt(0);
-                // Throws exception if invalid input entered
-                if (priority == 'Y' || priority == 'y') {
-                    isvalid = true;
-                    break;
-                } else if (priority == 'N' || priority == 'n') {
-                    break;
-                } else {
+                System.out.print("Will the Process have a priority? (Y/N): ");
+                String token = scanner.nextLine().trim();
+                if (token.length() == 0)
                     throw new Exception();
-                }
+                char c = token.charAt(0);
+                c = Character.toUpperCase(c);
+                if (c == 'Y')
+                    return true;
+                if (c == 'N')
+                    return false;
+                throw new Exception();
             } catch (Exception e) {
-                System.out.println("Invalid input. Only characters Y or N are allowed. Please enter a valid character.");
-                scanner.next();
+                System.out
+                        .println("Invalid input. Only characters Y or N are allowed. Please enter a valid character.");
             }
-        } while (!isvalid);
-        return isvalid;
+        }
     }
 
-    static void priority(int numProcess, boolean isPriority) {// Get process details from user
-        int highPri = 0;
-        int pID=1;
-        for (int x = 0; x < numProcess; x++) {
-            if (isPriority == true) {
-                try {// try catch block for priority input
-                    do {
-                        System.out.println("NOTE:\n Processes with a lower value have a higher priority.");
-                        System.out.println("Enter the priority for process "+ (pID) + ":");
-                        highPri = scanner.nextInt();
-                        if (highPri <= 0) {
-                            throw new MyException("Priority cannot be negative and must start from 1");
-                        }
-                        ;
-                    } while (highPri <= 0);
-                } catch(MyException me){
-                    System.out.println(me.getMessage());
-                }catch (Exception e) {
-                    System.out.println("Invalid input. Please enter a valid number.");
-                    scanner.next();
-                }
-            }
-            boolean isValid = false;
-            do {
+    static void priority(int numProcessLocal, boolean usePriority) {
+        int pID = 1;
+
+        for (int x = 0; x < numProcessLocal; x++) {
+            int highPri = 0;
+
+            if (usePriority) {
+                while (true) {
                     try {
-                    // if there is no priority, set highPri to 0 for all non priority processes
-                    System.out.println("Enter the arrival time for process " + (pID) + ":");
+                        System.out.println("NOTE: Processes with a larger value has a higher priority.");
+                        System.out.print("Enter the priority for process " + pID + ": ");
+                        highPri = scanner.nextInt();
+                        scanner.nextLine();
+                        if (highPri <= 0) {
+                            throw new MyException("Priority cannot be negative or zero; must start from 1");
+                        }
+                        break;
+                    } catch (MyException me) {
+                        System.out.println(me.getMessage());
+                        scanner.nextLine();
+                    } catch (InputMismatchException ime) {
+                        System.out.println("Invalid input. Please enter an integer for priority.");
+                        scanner.nextLine();
+                    } catch (Exception e) {
+                        System.out.println("Invalid input. Please enter a valid number.");
+                        scanner.nextLine();
+                    }
+                }
+            } else {
+                highPri = 0;
+            }
+
+            // arrival and burst time loop
+            while (true) {
+                try {
+                    System.out.print("Enter the arrival time for process " + pID + ": ");
                     int at = scanner.nextInt();
-                    System.out.println("Enter the burst time for process " + (pID) + ":");
+                    System.out.print("Enter the burst time for process " + pID + ": ");
                     int bt = scanner.nextInt();
+                    scanner.nextLine();
+
                     if (at < 0 || bt < 0) {
-                        pID--;
                         throw new MyException("Arrival time and/or Burst time cannot be negative");
                     }
-                    // Store process details in ProcessLink array
+
+                    // Store process details
                     ProcessLink[x][Field.id.getValue()] = pID;
                     ProcessLink[x][Field.arrivalTime.getValue()] = at;
                     ProcessLink[x][Field.burstTime.getValue()] = bt;
                     ProcessLink[x][Field.priority.getValue()] = highPri;
-                    isValid = true; 
+
+                    // defensive/default initializations
+                   ProcessLink[x][Field.waitingTime.getValue()] = 0;
+                   ProcessLink[x][Field.turnAroundTime.getValue()] = 0;
+                   ProcessLink[x][Field.startTime.getValue()] = 0;
+                   ProcessLink[x][Field.responseTime.getValue()] = 0; 
+
+
                     pID++;
-                } catch (MyException me) { System.out.println(me.getMessage()); scanner.next(); 
+                    break;
+                } catch (MyException me) {
+                    System.out.println(me.getMessage());
+                } catch (InputMismatchException ime) {
+                    System.out.println("Invalid input. Please enter integers for arrival and burst times.");
+                    scanner.nextLine();
                 } catch (Exception e) {
                     System.out.println("Invalid input. Please enter a valid number.");
+                    scanner.nextLine();
                 }
-            }while(isValid!=true); // continue loop until valid input is entered
+            }
         }
-
     }
 
-    static int[][] sort() {// Sort based on Arrival Time to enqueue (bubble sort)
+ /*  static int[][] sort() {
+        if (ProcessLink == null || ProcessLink.length <= 1)
+            return ProcessLink;
         int n = ProcessLink.length;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n - i - 1; j++) {
-                if (ProcessLink[j][Field.arrivalTime.getValue()] > ProcessLink[j + 1][Field.arrivalTime
-                        .getValue()]) {
-                    // swap ProcessLink[j] and ProcessLink[j+1]
+                if (ProcessLink[j][Field.arrivalTime.getValue()] > ProcessLink[j + 1][Field.arrivalTime.getValue()]) {
                     int[] temp = ProcessLink[j];
                     ProcessLink[j] = ProcessLink[j + 1];
                     ProcessLink[j + 1] = temp;
@@ -126,94 +156,123 @@ public class Main {
         }
         return ProcessLink;
     }
-    static String toStringAllProcesses(int [] avg) {
+    */
+
+    static String toStringAllProcesses(float[] avg) {
         StringBuilder sb = new StringBuilder();
         sb.append("Process:\n");
-        if (ProcessLink == null) {
+        if (ProcessLink == null || ProcessLink.length == 0) {
             sb.append("No processes.\n");
             return sb.toString();
         }
         for (int p = 0; p < ProcessLink.length; p++) {
-            sb.append(ProcessLink[p][Field.id.getValue()] + ") ");
-            sb.append("Arrival Time: " + ProcessLink[p][Field.arrivalTime.getValue()] + ", ");
-            sb.append("Burst Time: " + ProcessLink[p][Field.burstTime.getValue()] + ", ");
-            sb.append("Priority: " + ProcessLink[p][Field.priority.getValue()] + ", ");
-            sb.append("Waiting Time: " + ProcessLink[p][Field.waitingTime.getValue()] + ", ");
-            sb.append("Turn Around Time: " + ProcessLink[p][Field.turnAroundTime.getValue()] + ", ");
-            sb.append("Start Time: " + ProcessLink[p][Field.startTime.getValue()] + ", ");
-            sb.append("Response Time: " + ProcessLink[p][Field.responseTime.getValue()] + ",");
+            sb.append("\nProcess ID:"+ProcessLink[p][Field.id.getValue()]);
+            sb.append(" | Arrival Time: " + ProcessLink[p][Field.arrivalTime.getValue()]);
+            sb.append(" | Burst Time: " + ProcessLink[p][Field.burstTime.getValue()]);
+            sb.append(" | Priority: " + ProcessLink[p][Field.priority.getValue()]);
+            sb.append(" | Waiting Time: " + ProcessLink[p][Field.waitingTime.getValue()]);
+            sb.append(" | Turn Around Time: " + ProcessLink[p][Field.turnAroundTime.getValue()]);
+            sb.append(" | Start Time: " + ProcessLink[p][Field.startTime.getValue()]);
+            sb.append(" | Response Time: " + ProcessLink[p][Field.responseTime.getValue()]);
+            sb.append(" | Priority: " + ProcessLink[p][Field.priority.getValue()]);
             sb.append("\n");
-            // avg(avgWT,avgTT,avgRT) shows average waiting time, average turn around time and average response time
-            sb.append("The average waiting time is: " + avg[0] + "\n");
-            sb.append("The average turn around time is: " + avg[1] + "\n");
-            sb.append("The average response time is: " + avg[2] + "\n");
+        }
+        if (avg != null && avg.length >= 3) {
+            sb.append(String.format("\nThe average waiting time is: %.2f%n", avg[0]));
+            sb.append(String.format("The average turn around time is: %.2f%n", avg[1]));
+            sb.append(String.format("The average response time is: %.2f%n", avg[2]));
         }
         return sb.toString();
     }
-          public static int[] findAllAverages() {
-            int avgWT,avgTT,avgRT;
-            avgWT = avgTT = avgRT = 0;
-            for (int i = 0; i < numProcess; i++) {
-                avgWT += ProcessLink[i][Field.waitingTime.getValue()];
-                avgTT += ProcessLink[i][Field.turnAroundTime.getValue()];
-                avgRT += ProcessLink[i][Field.responseTime.getValue()];
-            }
-            avgWT /= numProcess;
-            avgTT /= numProcess;
-            avgRT /= numProcess;
-            int [] avg = {avgWT,avgTT,avgRT};
-            return avg;
-            
+
+    static String toStringAllProcesses() {
+        return toStringAllProcesses(null);
+    }
+
+    public static float[] findAllAverages() {
+        if (numProcess <= 0 || ProcessLink == null || ProcessLink.length == 0) {
+            return new float[] { 0f, 0f, 0f };
         }
-    static void selectScheduler(){       
+        float avgWT = 0f, avgTT = 0f, avgRT = 0f;
+        for (int i = 0; i < numProcess; i++) {
+            avgWT += ProcessLink[i][Field.waitingTime.getValue()];
+            avgTT += ProcessLink[i][Field.turnAroundTime.getValue()];
+            avgRT += ProcessLink[i][Field.responseTime.getValue()];
+        }
+        avgWT /= numProcess;
+        avgTT /= numProcess;
+        avgRT /= numProcess;
+         // Round to 2 decimal places
+        avgWT = Math.round(avgWT * 100f) / 100f;
+        avgTT = Math.round(avgTT * 100f) / 100f;
+        avgRT = Math.round(avgRT * 100f) / 100f;
+        return new float[] { avgWT, avgTT, avgRT };
+    }
+
+   
+    static void selectScheduler() {
+        if (numProcess <= 0) {
+            System.out.println("No processes to schedule. Exiting scheduler selection.");
+            return;
+        }
+
         do {
             try {
-                System.out.println("Select a Scheduling Algorithm:");
+                System.out.println("\nSelect a Scheduling Algorithm:");
                 System.out.println("1. First-Come, First-Served (FCFS)");
                 System.out.println("2. Shortest Job First (SJF)");
                 System.out.println("3. Priority Scheduling");
                 System.out.println("4. Round Robin (RR)");
+                System.out.println("5. Exit");
+                System.out.print("Enter choice: ");
                 choice = scanner.nextInt();
+                scanner.nextLine();
+
                 switch (choice) {
                     case 1: // FCFS
-                        //Calculate the averages and Display after 
-                        toStringAllProcesses(int [] avgs=findAllAverages());
+                        System.out.println("\n--- FCFS Results ---");
+                        System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
-                    case 2:// SJF
-                        SJF sjf= new SJF(ProcessLink);
+                    case 2: // SJF
+                        System.out.println("\n--- SJF Results ---");
+                        SJF sjf = new SJF(ProcessLink);
                         sjf.sjfScheduling();
-                        //Calculate the averages and Display after 
-                        toStringAllProcesses(int [] avgs=findAllAverages());
+                        System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
-                    case 3:// Priority Scheduling
-                        //Calculate the averages and Display after 
-                        toStringAllProcesses(int [] avgs=findAllAverages());
+                    case 3: // Priority Scheduling
+                        System.out.println("\n--- Priority Scheduling Results ---");
+                        PreemptivePriority pp = new PreemptivePriority(ProcessLink);
+                        pp.PriorityScheduling();
+                        System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 4: // MLQ
-                        //Calculate the averages and Display after 
-                        toStringAllProcesses(int [] avgs=findAllAverages());
+                        System.out.println("\n--- MLQ Results ---");
+                        // implement or call your RR scheduler here (ask for quantum, etc.)
+                        System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
-                    case 5:// Exit
+                    case 5:
                         System.out.println("Goodbye!");
-                        System.exit(0);
-                    default: // Invalid choice
-                        System.out.println("Invalid choice. Please select a valid option between 0 and 5.");
+                        return;
+                    default:
+                        System.out.println("Invalid choice. Please select a valid option between 1 and 5.");
                 }
             } catch (InputMismatchException e) {
                 System.out.println("Invalid input. Only integers are allowed. Please enter a number.");
-                scanner.next(); // Clear invalid input
+                scanner.nextLine();
             }
-        } while (choice < 1 || choice > 5);
+        } while (true);
+    }
+
+    static void mainPage() {
+        NumOfProcess();
+        if (numProcess > 0) {
+            priority(numProcess, isPriority());
+            System.out.println("\nInitial Input:");
+            System.out.println(toStringAllProcesses());
+            selectScheduler();
+        } else {
+            System.out.println("No processes entered. Exiting.");
+        }
         System.out.println("Simulation completed.");
     }
-    static void mainPage(){
-        NumOfProcess();
-        priority(numProcess,isPriority());
-        ProcessLink=sort();
-        System.out.println(toStringAllProcesses());
-        selectScheduler();
-
-
-    }
-
 }
