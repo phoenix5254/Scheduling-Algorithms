@@ -9,22 +9,11 @@ public class Main {
         scanner.close();
     }
 
-    static void mainPage() {
-        NumOfProcess();
-        if (numProcess > 0) {
-            priority(numProcess, isPriority());
-            System.out.println("\nInitial Input:");
-            System.out.println(toStringAllProcesses());
-            selectScheduler();
-        } else {
-            System.out.println("No processes entered. Exiting.");
-        }
-        System.out.println("Simulation completed.");
-    }
     static int[][] ProcessLink; // 2D array to store processes
     static final int attributes = 9; // Number of attributes in Process
     static int numProcess = -1;
     static int choice = 0; // to track which scheduler is selected
+    static java.util.List<Process> ganttHistory = new java.util.ArrayList<>(); // To store execution history for Gantt Chart
 
     int getNumProcess() {
         return numProcess;
@@ -268,6 +257,81 @@ public class Main {
             }
         } while (true);
     }
+    /**
+ * Prints a console-based Gantt Chart based on the static execution history.
+ */
+public static void printGanttChart() {
+    System.out.println("\n" + "=".repeat(60));
+    System.out.println("Gantt Chart (Execution History)");
+    System.out.println("=".repeat(60));
+    
+    if (ganttHistory.isEmpty()) {
+        System.out.println("No scheduling history to display.");
+        return;
+    }
 
+    // Use three strings to build the chart parts
+    StringBuilder topBar = new StringBuilder();    // e.g., +-------+-------+
+    StringBuilder processLabels = new StringBuilder(); // e.g., |  P1   |  P2   |
+    StringBuilder timeSlices = new StringBuilder();  // e.g., 0       5       10
+    
+    // The first time mark is always the start time of the very first executed process
+    timeSlices.append(ganttHistory.get(0).getStartTime());
+    
+    for (Process p : ganttHistory) {
+        // Need to use the burst time stored in the history object
+        int burst = p.getBurstTime(); 
+        int pid = p.getId();
+        int end = p.getStartTime() + burst; // Completion time for this execution block
+
+        // Calculate the width for the chart block
+        int labelLength = String.valueOf("P" + pid).length();
+        int width = Math.max(burst, labelLength + 2); // Ensure block is wide enough for label
+
+        // 1. Build Top Bar
+        topBar.append("+");
+        topBar.append("-".repeat(width));
+        
+        // 2. Build Process Labels (centered)
+        processLabels.append("|");
+        int padding = width - labelLength;
+        processLabels.append(" ".repeat(padding / 2));
+        processLabels.append("P").append(pid);
+        processLabels.append(" ".repeat(padding - padding / 2));
+
+        // 3. Update Time Slices
+        int newTimeMarkLength = String.valueOf(end).length();
+        int spacing = width - newTimeMarkLength; 
+        
+        timeSlices.append(" ".repeat(Math.max(0, spacing)));
+        timeSlices.append(end);
+    }
+    
+    // Finish the strings
+    topBar.append("+");
+    processLabels.append("|");
+
+    // Print the chart structure
+    System.out.println(topBar.toString());
+    System.out.println(processLabels.toString());
+    System.out.println(topBar.toString());
+    System.out.println(timeSlices.toString());
+    
+    System.out.println("=".repeat(60));
+    
+ 
+}
+ static void mainPage() {
+        NumOfProcess();
+        if (numProcess > 0) {
+            priority(numProcess, isPriority());
+            System.out.println("\nInitial Input:");
+            System.out.println(toStringAllProcesses());
+            selectScheduler();
+        } else {
+            System.out.println("No processes entered. Exiting.");
+        }
+        System.out.println("Simulation completed.");
+    }
     
 }
