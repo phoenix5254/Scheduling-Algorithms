@@ -185,55 +185,39 @@ public class Main {
         return toStringAllProcesses(null);
     }
 
-    public static float[] findAllAverages() {
+    public static float[] findAllAverages(Process p) {
         if (numProcess <= 0 || ProcessLink == null || ProcessLink.length == 0) {
             return new float[] { 0f, 0f, 0f, 0f, 0f };
         }
-        float avgWT = 0f, avgTT = 0f, avgRT = 0f;
+        float avgWT = 0f, avgTT = 0f, avgRT = 0f, throwput = 0f, cpuUtil=0f;
         for (int i = 0; i < numProcess; i++) {
             avgWT += ProcessLink[i][Field.waitingTime.getValue()];
             avgTT += ProcessLink[i][Field.turnAroundTime.getValue()];
             avgRT += ProcessLink[i][Field.responseTime.getValue()];
+            cpuUtil+=ProcessLink[i][Field.burstTime.getValue()];
         }
         avgWT /= numProcess;
         avgTT /= numProcess;
         avgRT /= numProcess;
+        throwput=numProcess/p.getTime();
+        cpuUtil/=p.getTime();
+
          // Round to 2 decimal places
         avgWT = Math.round(avgWT * 100f) / 100f;
         avgTT = Math.round(avgTT * 100f) / 100f;
         avgRT = Math.round(avgRT * 100f) / 100f;
-        float[] result= find_Util_Throughput();
-        return new float[] { avgWT, avgTT, avgRT, result[0], result[1] };
+        return new float[] { avgWT, avgTT, avgRT, cpuUtil, throwput };
     }
-   public static float[] find_Util_Throughput() {
-
-    float totalBurst = 0;
-    float totalFinishTime = 0;
-
-    for (int i = 0; i < numProcess; i++) {
-        totalBurst += ProcessLink[i][Field.burstTime.getValue()];
-        totalFinishTime = Math.max(totalFinishTime, ProcessLink[i][Field.turnAroundTime.getValue()]);
-    }
-
-    float cpuUtil = (totalBurst / totalFinishTime) * 100f;
-    float throughput = numProcess / totalFinishTime;
-
-    cpuUtil = Math.round(cpuUtil * 100f) / 100f;
-    throughput = Math.round(throughput * 100f) / 100f;
-
-    return new float[]{cpuUtil, throughput};
-}
-
-
    
     static void selectScheduler() {
+        int[][] copy=ProcessLink.clone();
         if (numProcess <= 0) {
             System.out.println("No processes to schedule. Exiting scheduler selection.");
             return;
         }
-
         do {
             try {
+                ProcessLink=copy;
                 System.out.println("\nSelect a Scheduling Algorithm:");
                 System.out.println("1. First-Come, First-Served (FCFS)");
                 System.out.println("2. Shortest Job First (SJF)");
@@ -249,24 +233,28 @@ public class Main {
                         FCFS fcfs = new FCFS();
                         fcfs.fcfsScheduling();
                         System.out.println("\n--- FCFS Results ---");
-                        System.out.println(toStringAllProcesses(findAllAverages()));
+                        System.out.println(toStringAllProcesses(findAllAverages(fcfs)));
                         break;
                     case 2: // SJF
                         System.out.println("\n--- SJF Results ---");
                         SJF sjf = new SJF();
                         sjf.sjfScheduling();
-                        System.out.println(toStringAllProcesses(findAllAverages()));
+                        System.out.println(toStringAllProcesses(findAllAverages(sjf)));
                         break;
                     case 3: // Priority Scheduling
                         System.out.println("\n--- Priority Scheduling Results ---");
-                        PriorityScheduling.runPriorityScheduling();
-                        System.out.println(toStringAllProcesses(findAllAverages()));
+                        PriorityScheduling ps= new PriorityScheduling();
+                        ps.PriorityScheduler();
+                        System.out.println(toStringAllProcesses(findAllAverages(ps)));
                         break;
                     case 4: // MLQ
                         System.out.println("\n--- MLQ Results ---");
-                        MLQ mlq = new MLQ(ProcessLink);
-                        mlq.schedule();
-                        System.out.println(toStringAllProcesses(findAllAverages()));
+                        MLQ mlq = new MLQ(2); // Time quantum for medium priority queue is 2
+                        for (int[] processData : ProcessLink) {
+                            Process p = new Process(processData);
+                            mlq.addProcess(p);
+                        System.out.println(toStringAllProcesses(findAllAverages(p)));
+                        }
                         break;
                     case 5:
                         System.out.println("Goodbye!");

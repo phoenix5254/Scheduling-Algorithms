@@ -3,8 +3,6 @@ public class FCFS extends Process {
 
     public void fcfsScheduling() {
 
-        int time = 0;
-
 
         Queue<Process> displayQueue = new Queue<>();
 
@@ -16,18 +14,18 @@ public class FCFS extends Process {
 
 
 
-            if (time < arrival) {
-                time = arrival;
+            if (getTime() < arrival) {
+                setTime(arrival);
             }
 
-            int start = time;
+            int start = getTime();
             int completion = start + burst;
 
             int tat = completion - arrival;
             int wt  = start - arrival;
             int rt  = wt;
 
-            time = completion;
+            setTime(completion);
 
 
             Main.ProcessLink[i][Field.startTime.getValue()] = start;

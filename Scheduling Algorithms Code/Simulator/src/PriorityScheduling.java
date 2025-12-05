@@ -1,84 +1,104 @@
 public class PriorityScheduling extends Process {
 
-    public PriorityScheduling() { }
+    public void PriorityScheduler() {
+        // --- 1. Initialization and Setup ---
+        
+        // Use a list of Process objects to manage state (remaining burst time, start time)
+        java.util.List<Process> processList = new java.util.ArrayList<>();
+        
+        // Convert the static ProcessLink array into a list of mutable Process objects.
+        for (int i = 0; i < Main.numProcess; i++) {
+            // Use the constructor that loads data from the existing ProcessLink row
+            Process p = new Process(Main.ProcessLink[i]);
+            processList.add(p);
+        }
 
-    // --------------------------
-    // Sort by priority DESC
-    // If same priority → arrival ASC
-    // --------------------------
-    public static int[][] sortForPriority() {
-        int n = Main.ProcessLink.length;
+        setTime(0); // Start the system clock at time 0
+        int completedCount = 0;
 
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
+        // --- 2. Main Scheduling Loop ---
 
-                int[] a = Main.ProcessLink[j];
-                int[] b = Main.ProcessLink[j + 1];
-
-                int pa = a[Field.priority.getValue()];
-                int pb = b[Field.priority.getValue()];
-
-                int aa = a[Field.arrivalTime.getValue()];
-                int ab = b[Field.arrivalTime.getValue()];
-
-                // Sort rule:
-                // 1. Higher priority FIRST
-                // 2. If same priority → earlier arrival FIRST
-                if (pa < pb || (pa == pb && aa > ab)) {
-                    Main.ProcessLink[j] = b;
-                    Main.ProcessLink[j + 1] = a;
+        while (completedCount < processList.size()) {
+            
+            // A. Find the Highest Priority Ready Process (Manual Selection)
+            int minPriority = Integer.MAX_VALUE;
+            Process selectedProcess = null;
+            
+            for (Process p : processList) {
+                // Check if the process has arrived AND still has remaining burst time
+                if (p.getBurstTime() > 0 && p.getArrivalTime() <= getTime()) {
+                    // Preemptive check: Smaller number is HIGHER priority
+                    if (p.getPriority() < minPriority) {
+                        minPriority = p.getPriority();
+                        selectedProcess = p;
+                    } 
+                    // Optional: Tie-breaker (e.g., using FCFS for equal priority)
+                    // If p.getPriority() == minPriority, do nothing, as the process 
+                    // that was found first (and thus arrived earlier or has a lower index) wins.
                 }
             }
-        }
-        return Main.ProcessLink;
-    }
 
-    // --------------------------
-    // Non-preemptive Priority Scheduling
-    // --------------------------
-    public static void runPriorityScheduling() {
-
-        // Step 1: Sort
-        sortForPriority();
-
-        Process[] proc = new Process[Main.numProcess];
-        for (int i = 0; i < Main.numProcess; i++) {
-            proc[i] = new Process(Main.ProcessLink[i]);
-        }
-
-        int time = 0;
-
-        for (Process p : proc) {
-
-            if (time < p.getArrivalTime()) {
-                time = p.getArrivalTime();
+            // B. Handle Idle Time
+            if (selectedProcess == null) {
+                // Find the next arrival time among processes that haven't finished
+                int nextArrival = Integer.MAX_VALUE;
+                for (Process p : processList) {
+                    if (p.getBurstTime() > 0 && p.getArrivalTime() > getTime() && p.getArrivalTime() < nextArrival) {
+                        nextArrival = p.getArrivalTime();
+                    }
+                }
+                
+                // Advance time to the next arrival if one exists
+                if (nextArrival != Integer.MAX_VALUE) {
+                    setTime(nextArrival);
+                } else {
+                    // All processes are finished
+                    break;
+                }
+                continue;
             }
 
-            p.setStartTime(time);
+            // C. Preemptive Execution
+            
+            // Set Start Time (First time the CPU runs it)
+            if (selectedProcess.getStartTime() == null) {
+                selectedProcess.setStartTime(getTime());
+                
+                // Calculate Response Time: Start Time - Arrival Time
+                selectedProcess.setResponseTime(selectedProcess.getStartTime() - selectedProcess.getArrivalTime());
+                
+                // Optional: Update Main.ProcessLink immediately
+                super.addToProcessList(selectedProcess); 
+            }
 
-            p.setWaitingTime(time - p.getArrivalTime());
+            // Execute for 1 time unit (The Preemption step)
+            int remainingBurst = selectedProcess.getBurstTime() - 1;
+            selectedProcess.setBurstTime(remainingBurst); // Update remaining burst time
+            setTime(getTime() + 1); // Advance clock by 1
 
-            p.setResponseTime(p.getStartTime() - p.getArrivalTime());
-
-            p.setTurnAroundTime(p.getWaitingTime() + p.getBurstTime());
-
-            time += p.getBurstTime();
-
-            p.addToProcessList(p);
-        }
-
-        System.out.println("\n--- Priority Scheduling Results ---");
-        for (Process p : proc) {
-            System.out.println(
-                "Process ID: " + p.getId() +
-                " | Arrival: " + p.getArrivalTime() +
-                " | Burst: " + p.getBurstTime() +
-                " | Priority: " + p.getPriority() +
-                " | Start: " + p.getStartTime() +
-                " | Waiting: " + p.getWaitingTime() +
-                " | Turnaround: " + p.getTurnAroundTime() +
-                " | Response: " + p.getResponseTime()
-            );
+            // D. Completion Check
+            if (remainingBurst == 0) {
+                completedCount++;
+                
+                int completionTime = getTime();
+                
+                // Get the original burst time from the static array for correct TAT/WT calculation
+                int originalBurstTime = Main.ProcessLink[selectedProcess.getId() - 1][Field.burstTime.getValue()];
+                
+                // Turnaround Time = Completion Time - Arrival Time
+                int tat = completionTime - selectedProcess.getArrivalTime();
+                selectedProcess.setTurnAroundTime(tat);
+                
+                // Waiting Time = Turnaround Time - Original Burst Time
+                int wt = tat - originalBurstTime;
+                selectedProcess.setWaitingTime(wt);
+                
+                // Final update the static ProcessLink array with completion metrics
+                super.addToProcessList(selectedProcess); 
+            }
+            
+            // The loop repeats, and the selection logic (A) checks for preemption
+            // at the new time unit.
         }
     }
 }

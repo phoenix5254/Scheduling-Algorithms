@@ -42,7 +42,7 @@ public class SJF extends Process {
       }
 
       int remaining = procList.size();
-      int time = 0;
+      setTime( 0);
 
       // Use your Queue<Process> for display/history
       Queue<Process> displayQueue = new Queue<>();
@@ -51,7 +51,7 @@ public class SJF extends Process {
          // collect ready processes (arrived <= time)
          java.util.List<int[]> ready = new java.util.ArrayList<>();
          for (int[] row : procList) {
-            if (row != null && row[1] <= time) {
+            if (row != null && row[1] <= getTime()) {
                ready.add(row);
             }
          }
@@ -68,7 +68,7 @@ public class SJF extends Process {
                // no more processes (shouldn't happen because remaining>0), but safe-guard
                break;
             }
-            time = Math.max(time + 1, nextArrival); // move to next arrival
+            setTime(Math.max(getTime() + 1, nextArrival)); // move to next arrival
             continue;
          }
 
@@ -86,14 +86,14 @@ public class SJF extends Process {
          // Note: this constructor sets this.id (SJF.id) so getId() override (below) will
          // return it.
          SJF proc = new SJF(chosen[1], chosen[2], chosen[0]);
-         proc.setStartTime(time);
+         proc.setStartTime(getTime());
 
          // enqueue for display (do NOT immediately Dequeue - we want history)
          displayQueue.Enqueue(proc);
 
          // run process (non-preemptive SJF)
-         time += proc.getBurstTime();
-         int completion = time;
+         setTime(getTime()+proc.getBurstTime());
+         int completion = getTime();
          int tat = completion - proc.getArrivalTime();
          int wt = proc.getStartTime() - proc.getArrivalTime(); // waiting before start
          int rt = proc.getStartTime() - proc.getArrivalTime(); // for non-preemptive, response == wait before start

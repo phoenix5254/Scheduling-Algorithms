@@ -12,7 +12,7 @@ public class Process {
     protected Integer startTime; // accepts null value for uninitialized start time
 
     static java.util.Scanner scanner = new java.util.Scanner(System.in);
-    static int timeUnit = 0;
+    int timeUnit = 0;
 
     // Constructors
 
@@ -164,6 +164,12 @@ public class Process {
     public void setStartTime(Integer startTime) {
         this.startTime = startTime;
     }
+    public int getTime(){
+        return timeUnit;
+    }
+    public void setTime(int time){
+        this.timeUnit=time;
+    }
 
     // view
     public void ViewProcessByObject() {
@@ -185,8 +191,7 @@ public class Process {
             if (Main.ProcessLink[i][Field.id.getValue()] == pid) {
                 Main.ProcessLink[i][Field.arrivalTime.getValue()] = process.getArrivalTime();
                 Main.ProcessLink[i][Field.burstTime.getValue()] = process.getBurstTime();
-                Main.ProcessLink[i][Field.startTime.getValue()] = process.getStartTime() == null ? 0
-                        : process.getStartTime();
+                Main.ProcessLink[i][Field.startTime.getValue()] = process.getStartTime() == null ? 0: process.getStartTime();
                 Main.ProcessLink[i][Field.waitingTime.getValue()] = process.getWaitingTime();
                 Main.ProcessLink[i][Field.responseTime.getValue()] = process.getResponseTime();
                 Main.ProcessLink[i][Field.turnAroundTime.getValue()] = process.getTurnAroundTime();
