@@ -1,118 +1,87 @@
-import java.util.HashMap;
-import java.util.Map;
+public class MLQ extends Process
+{
+    public static void mlqScheduling(Queue<Process> processes, int timeQuantum) {
+        Queue<Process> rrQueue = new Queue<>();    // High priority queue (Round Robin)
+        Queue<Process> fcfsQueue = new Queue<>();  // Low priority queue (FCFS)
 
-public class MLQ {
-    // Three queues for the three levels
-    private Queue<Process> highPriorityQueue;
-    private Queue<Process> mediumPriorityQueue;
-    private Queue<Process> lowPriorityQueue;
-
-    // Time quantum for Round Robin in the medium priority queue
-    private int timeQuantum;
-
-    // To store original burst times for calculations
-    private Map<Integer, Integer> originalBurstTimes;
-
-    public MLQ(int timeQuantum) {
-        this.highPriorityQueue = new Queue<>();
-        this.mediumPriorityQueue = new Queue<>();
-        this.lowPriorityQueue = new Queue<>();
-        this.timeQuantum = timeQuantum;
-        this.originalBurstTimes = new HashMap<>();
-    }
-
-    public void addProcess(Process process) {
-        if (process == null) {
-            return;
-        }
-        originalBurstTimes.put(process.getId(), process.getBurstTime());
-        switch (process.getPriority()) {
-            case 1:
-                highPriorityQueue.Enqueue(process);
-                break;
-            case 2:
-                mediumPriorityQueue.Enqueue(process);
-                break;
-            case 3:
-                lowPriorityQueue.Enqueue(process);
-                break;
-            default:
-                System.out.println("Invalid priority for process " + process.getId());
-                break;
-        }
-    }
-
-    public void schedule() {
+        int totalProcesses = processes.getCount();
+        int completedProcesses = 0;
         int currentTime = 0;
 
-        while (!highPriorityQueue.isEmpty() || !mediumPriorityQueue.isEmpty() || !lowPriorityQueue.isEmpty()) {
-            // Process high priority queue (FCFS)
-            if (!highPriorityQueue.isEmpty()) {
-                Process p = highPriorityQueue.Dequeue();
-                if (p == null) continue;
-
-                if (p.getStartTime() == null) {
-                    p.setStartTime(currentTime);
-                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
+        while (completedProcesses < totalProcesses) {
+            // Move processes from the initial queue to the ready queues if they have arrived
+            while (!processes.isEmpty() && processes.peek().getArrivalTime() <= currentTime) {
+                Process p = processes.Dequeue();
+                if (p.getPriority() == 1) { // Priority 1 for Round Robin
+                    rrQueue.Enqueue(p);
+                } else { // Other priorities for FCFS
+                    fcfsQueue.Enqueue(p);
                 }
-
-                System.out.println("Executing process " + p.getId() + " from high priority queue.");
-                currentTime += p.getBurstTime();
-                
-                p.setTurnAroundTime(currentTime - p.getArrivalTime());
-                p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
-                p.addToProcessList(p);
             }
-            // Process medium priority queue (Round Robin)
-            else if (!mediumPriorityQueue.isEmpty()) {
-                Process p = mediumPriorityQueue.Dequeue();
-                if (p == null) continue;
+
+            if (!rrQueue.isEmpty()) {
+                Process p = rrQueue.Dequeue();
 
                 if (p.getStartTime() == null) {
                     p.setStartTime(currentTime);
                     p.setResponseTime(p.getStartTime() - p.getArrivalTime());
                 }
 
-                System.out.println("Executing process " + p.getId() + " from medium priority queue.");
-                if (p.getBurstTime() > timeQuantum) {
-                    currentTime += timeQuantum;
-                    p.setBurstTime(p.getBurstTime() - timeQuantum);
-                    mediumPriorityQueue.Enqueue(p); // Re-queue the process
-                } else {
-                    currentTime += p.getBurstTime();
-                    p.setBurstTime(0);
+                if (p.getRemainingBurstTime() <= timeQuantum) {
+                    // Process will finish in this time slice
+                    currentTime += p.getRemainingBurstTime();
+                    p.setRemainingBurstTime(0);
                     p.setTurnAroundTime(currentTime - p.getArrivalTime());
-                    p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
-                    p.addToProcessList(p);
-                }
-            }
-            // Process low priority queue (FCFS)
-            else if (!lowPriorityQueue.isEmpty()) {
-                Process p = lowPriorityQueue.Dequeue();
-                if (p == null) continue;
+                    p.setWaitingTime(p.getTurnAroundTime() - p.getBurstTime());
+                    p.addToProcessList(p); // Update process details
+                    completedProcesses++;
+                } else {
+                    // Process will not finish, run for a full time quantum
+                    currentTime += timeQuantum;
+                    p.setRemainingBurstTime(p.getRemainingBurstTime() - timeQuantum);
 
-                if (p.getStartTime() == null) {
-                    p.setStartTime(currentTime);
-                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
+                    // Before re-queueing, check for new arrivals that might have come during the quantum
+                    while (!processes.isEmpty() && processes.peek().getArrivalTime() <= currentTime) {
+                        Process newP = processes.Dequeue();
+                        if (newP.getPriority() == 1) {
+                            rrQueue.Enqueue(newP);
+                        } else {
+                            fcfsQueue.Enqueue(newP);
+                        }
+                    }
+
+                    rrQueue.Enqueue(p); // Add the process back to the queue
                 }
-                
-                System.out.println("Executing process " + p.getId() + " from low priority queue.");
+            } else if (!fcfsQueue.isEmpty()) {
+                Process p = fcfsQueue.Dequeue();
+
+                if (currentTime < p.getArrivalTime()) {
+                    currentTime = p.getArrivalTime();
+                }
+
+                p.setStartTime(currentTime);
+                p.setResponseTime(p.getStartTime() - p.getArrivalTime());
                 currentTime += p.getBurstTime();
+                p.setRemainingBurstTime(0);
 
                 p.setTurnAroundTime(currentTime - p.getArrivalTime());
-                p.setWaitingTime(p.getTurnAroundTime() - originalBurstTimes.get(p.getId()));
-                p.addToProcessList(p);
+                p.setWaitingTime(p.getTurnAroundTime() - p.getBurstTime());
+                p.addToProcessList(p); // Update process details
+                completedProcesses++;
+            } else {
+                // If no process is in the ready queues, advance time to the next arrival
+                if (!processes.isEmpty()) {
+                    currentTime = processes.peek().getArrivalTime();
+                } else {
+                    // All processes are done, exit loop
+                    break;
+                }
             }
+        }
+
+        // Update Main.ProcessLink
+        for (int i = 0; i < Main.numProcess; i++) {
+            Main.ProcessLink[i] = processes.get(i).getProcessLink();
         }
     }
 }
-
-
-/*
-CASE
-     System.out.println("\n--- MLQ Results ---");
-                        MLQ mlq = new MLQ(2); // Time quantum for medium priority queue is 2
-                        for (int[] processData : ProcessLink) {
-                            Process p = new Process(processData);
-                            mlq.addProcess(p);
-*/
