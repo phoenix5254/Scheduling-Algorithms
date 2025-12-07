@@ -49,21 +49,17 @@ public class Queue <t extends Process> {
     }
 
     public Process Dequeue() {// Remove a process from the queue
-        Process dataToReturn = null;
-        if (Front != null) {
-            if (Front == Rear) {
-                Rear = null;
-                return null;
-            }
-           
-            dataToReturn = Front.getData();
-            Front = Front.getNextNode();
-            if (Front == null) {
-                Rear = null; // If the queue is now empty, set Rear to null
-            }
-            count--;
+        if (Front == null) {
+            return null;
         }
-        
+        Process dataToReturn = Front.getData();
+        if (Front == Rear) {
+            Front = null;
+            Rear = null;
+        } else {
+            Front = Front.getNextNode();
+        }
+        count--;
         return dataToReturn;
     }
 
@@ -87,6 +83,11 @@ public class Queue <t extends Process> {
     
     public boolean isEmpty() {
         return Front == null; //return true in null else returns falsw
+    }
+
+    public Main get(int i) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'get'");
     }
 
     
