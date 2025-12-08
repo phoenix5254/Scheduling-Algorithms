@@ -237,8 +237,9 @@ public class Main {
             System.out.println("No processes to schedule. Exiting scheduler selection.");
             return;
         }
-
+        int [][] copy= ProcessLink; // backup original ProcessLink
         do {
+            ProcessLink= copy; // restore original before each scheduling
             try {
                 System.out.println("\nSelect a Scheduling Algorithm:");
                 System.out.println("1. First-Come, First-Served (FCFS)");
@@ -259,13 +260,14 @@ public class Main {
                         break;
                     case 2: // SJF
                         System.out.println("\n--- SJF Results ---");
-                        SJF sjf = new SJF(ProcessLink);
+                        SJF sjf = new SJF();
                         sjf.sjfScheduling();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 3: // Priority Scheduling
                         System.out.println("\n--- Priority Scheduling Results ---");
-                        PriorityScheduling.runPriorityScheduling();
+                        PriorityScheduling ps = new PriorityScheduling();
+                        ps.PriorityScheduler();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 4: // MQ
