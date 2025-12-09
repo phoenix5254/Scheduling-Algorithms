@@ -68,6 +68,6 @@ public class MLQ extends Process
 
         // For Gantt, since individual schedulers have their own, we might need to combine queues
         // For now, display a simple message or combine manually
-        System.out.println("MLQ Scheduling completed. Gantt chart display needs manual combination.");
+        //System.out.println("MLQ Scheduling completed. Gantt chart display needs manual combination.");
     }
 }
