@@ -43,14 +43,15 @@ public class FCFS extends Process {
             p.setTurnAroundTime(tat);
             p.setWaitingTime(wt);
             p.setResponseTime(rt);
-
+            for (int j = 0; j < burst; j++) {
             displayQueue.Enqueue(p);
+            }
         }
 
-        printTimeline(displayQueue);
+        displayQueue.displayGanttFromQueue(1, time);
     }
 
-    private void printTimeline(Queue<Process> displayQueue) {
+    /*private void printTimeline(Queue<Process> displayQueue) {
         System.out.println("\n===== FCFS Timeline Events =====");
 
         Node<Process> cur = displayQueue.getFront();
@@ -67,5 +68,5 @@ public class FCFS extends Process {
             );
             cur = cur.getNextNode();
         }
-    }
+    }*/
 }

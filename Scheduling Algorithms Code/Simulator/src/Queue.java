@@ -84,6 +84,85 @@ public class Queue <t extends Process> {
     public boolean isEmpty() {
         return Front == null; //return true in null else returns falsw
     }
+   public void displayGanttFromQueue(int choice, int totalTimeUnits) {
+    if (Front == null) {
+        System.out.println("The Queue is empty. Nothing to display.");
+        return;
+    }
+
+    // 1. Initialize variables
+    StringBuilder topBorder = new StringBuilder();
+    StringBuilder ganttBar = new StringBuilder();
+    StringBuilder bottomBorder = new StringBuilder();
+    StringBuilder timeMarkers = new StringBuilder();
+    int cumulativeTime = 0;
+    
+    // Define a fixed width for each process segment for perfect alignment.
+    // Width 4 gives us space for "| Px |" or "| Pxx |" and the time marker below.
+    final int segmentWidth = 4; 
+    
+    // Start at time 0
+    timeMarkers.append("0"); 
+
+    // Use a temporary pointer to traverse the queue
+    Node<t> current = Front; 
+
+    System.out.println("\n--- CPU Execution Sequence (Time Unit = 1) ---");
+    
+    // 2. Traverse and build the output strings
+    while (current != null) {
+        Process processData = current.getData();
+        int processID = processData.getId(); // Requires Process.getId()
+        
+        // --- Build the Gantt Bar and Borders ---
+        ganttBar.append("|");
+        
+        // Create the ID string. Use 'Px' format, centered within the segmentWidth.
+        String idString = "P" + processID; 
+        
+        // Calculate internal padding to center the ID string within the space of (segmentWidth - 1).
+        // Example: Width 4 -> Space of 3. ID 'P1' (2 chars). Left padding 1, Right padding 0.
+        int dataLength = idString.length();
+        int availableSpace = segmentWidth - 1; // 3 characters available between the pipes
+        int leftPadding = (availableSpace - dataLength) / 2;
+        int rightPadding = availableSpace - dataLength - leftPadding;
+
+        // Apply padding: (left spaces) + (ID) + (right spaces)
+        ganttBar.append(" ".repeat(leftPadding))
+                .append(idString)
+                .append(" ".repeat(rightPadding));
+
+        // Append the separators
+        topBorder.append("-".repeat(segmentWidth));
+        bottomBorder.append("-".repeat(segmentWidth));
+        
+        // --- Build the Time Markers ---
+        cumulativeTime += choice; // Increment time by 2 if utilized by MLQ, else use 1 time unit
+        
+        // The total padding needed is the full segmentWidth, minus the length of the new time number.
+        String cumulativeTimeString = String.valueOf(cumulativeTime);
+        int paddingLength = segmentWidth - cumulativeTimeString.length();
+        
+        // Append the time marker with padding
+        timeMarkers.append(String.format("%" + paddingLength + "s", cumulativeTimeString));
+        // Add 1 to the cumulative time before finishing
+        if (cumulativeTime == totalTimeUnits){
+            cumulativeTime++;
+            cumulativeTimeString = String.valueOf(cumulativeTime);
+        }
+        current = current.getNextNode();
+    }
+    
+    // 3. Print the final results
+    ganttBar.append("|");
+    
+    System.out.println(topBorder.toString()); 
+    System.out.println(ganttBar.toString());
+    System.out.println(bottomBorder.toString()); 
+    System.out.println(timeMarkers.toString());
+    
+    System.out.println("\n **Total Time Units Displayed**: **" + cumulativeTime + "**");
+}
 
     public Main get(int i) {
         // TODO Auto-generated method stub

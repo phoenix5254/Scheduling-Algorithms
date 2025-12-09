@@ -84,7 +84,9 @@ public class SJF extends Process {
          proc.setStartTime(time);
 
          // enqueue for display (do NOT immediately Dequeue - we want history)
-         displayQueue.Enqueue(proc);
+         for (int i = 0; i < proc.getBurstTime(); i++) {
+            displayQueue.Enqueue(proc);
+         }
 
          // run process (non-preemptive SJF)
          time += proc.getBurstTime();
@@ -111,25 +113,7 @@ public class SJF extends Process {
          }
       }
       // Print the queued processes (displayQueue uses your Queue implementation)
-      if (displayQueue.getFront() != null) {
-         // iterate nodes via getFront() and next-node chain
-         Node<Process> cur = displayQueue.getFront();
-         while (cur != null) {
-            Process p = cur.getData();
-            // Use your Process.toStringAllProcesses() or custom printing for each proc:
-            // I assume you have an instance method or use Main.ProcessLink for full table.
-            // We'll print the per-process stats we've computed:
-            System.out.println("Process ID: " + p.getId()
-                  + " | Arrival: " + p.getArrivalTime()
-                  + " | Burst: " + p.getBurstTime()
-                  + " | Start: " + p.getStartTime()
-                  + " | Waiting: " + p.getWaitingTime()
-                  + " | Turnaround: " + p.getTurnAroundTime()
-                  + " | Response: " + p.getResponseTime());
-            cur = cur.getNextNode();
-         }
-      } else {
-         System.out.println("There are no processes in the queue.");
-      }
-   } 
+         displayQueue.displayGanttFromQueue(1, time);
+   }
+
    }
