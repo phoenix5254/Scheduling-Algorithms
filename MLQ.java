@@ -1,87 +1,73 @@
 public class MLQ extends Process
 {
-    public static void mlqScheduling(Queue<Process> processes, int timeQuantum) {
-        Queue<Process> rrQueue = new Queue<>();    // High priority queue (Round Robin)
-        Queue<Process> fcfsQueue = new Queue<>();  // Low priority queue (FCFS)
-
-        int totalProcesses = processes.getCount();
-        int completedProcesses = 0;
-        int currentTime = 0;
-
-        while (completedProcesses < totalProcesses) {
-            // Move processes from the initial queue to the ready queues if they have arrived
-            while (!processes.isEmpty() && processes.peek().getArrivalTime() <= currentTime) {
-                Process p = processes.Dequeue();
-                if (p.getPriority() == 1) { // Priority 1 for Round Robin
-                    rrQueue.Enqueue(p);
-                } else { // Other priorities for FCFS
-                    fcfsQueue.Enqueue(p);
-                }
-            }
-
-            if (!rrQueue.isEmpty()) {
-                Process p = rrQueue.Dequeue();
-
-                if (p.getStartTime() == null) {
-                    p.setStartTime(currentTime);
-                    p.setResponseTime(p.getStartTime() - p.getArrivalTime());
-                }
-
-                if (p.getRemainingBurstTime() <= timeQuantum) {
-                    // Process will finish in this time slice
-                    currentTime += p.getRemainingBurstTime();
-                    p.setRemainingBurstTime(0);
-                    p.setTurnAroundTime(currentTime - p.getArrivalTime());
-                    p.setWaitingTime(p.getTurnAroundTime() - p.getBurstTime());
-                    p.addToProcessList(p); // Update process details
-                    completedProcesses++;
-                } else {
-                    // Process will not finish, run for a full time quantum
-                    currentTime += timeQuantum;
-                    p.setRemainingBurstTime(p.getRemainingBurstTime() - timeQuantum);
-
-                    // Before re-queueing, check for new arrivals that might have come during the quantum
-                    while (!processes.isEmpty() && processes.peek().getArrivalTime() <= currentTime) {
-                        Process newP = processes.Dequeue();
-                        if (newP.getPriority() == 1) {
-                            rrQueue.Enqueue(newP);
-                        } else {
-                            fcfsQueue.Enqueue(newP);
-                        }
-                    }
-
-                    rrQueue.Enqueue(p); // Add the process back to the queue
-                }
-            } else if (!fcfsQueue.isEmpty()) {
-                Process p = fcfsQueue.Dequeue();
-
-                if (currentTime < p.getArrivalTime()) {
-                    currentTime = p.getArrivalTime();
-                }
-
-                p.setStartTime(currentTime);
-                p.setResponseTime(p.getStartTime() - p.getArrivalTime());
-                currentTime += p.getBurstTime();
-                p.setRemainingBurstTime(0);
-
-                p.setTurnAroundTime(currentTime - p.getArrivalTime());
-                p.setWaitingTime(p.getTurnAroundTime() - p.getBurstTime());
-                p.addToProcessList(p); // Update process details
-                completedProcesses++;
-            } else {
-                // If no process is in the ready queues, advance time to the next arrival
-                if (!processes.isEmpty()) {
-                    currentTime = processes.peek().getArrivalTime();
-                } else {
-                    // All processes are done, exit loop
-                    break;
-                }
-            }
-        }
-
-        // Update Main.ProcessLink
+    public void mlqScheduling() {
+        // Backup original ProcessLink
+        int[][] originalProcessLink = new int[Main.numProcess][Main.attributes];
         for (int i = 0; i < Main.numProcess; i++) {
-            Main.ProcessLink[i] = processes.get(i).getProcessLink();
+            originalProcessLink[i] = Main.ProcessLink[i].clone();
         }
+
+        // Divide processes into high priority (priority > 0) and low priority (priority == 0)
+        java.util.List<int[]> highPriProcesses = new java.util.ArrayList<>();
+        java.util.List<int[]> lowPriProcesses = new java.util.ArrayList<>();
+        for (int i = 0; i < Main.numProcess; i++) {
+            if (Main.ProcessLink[i][Field.priority.getValue()] > 0) {
+                highPriProcesses.add(Main.ProcessLink[i].clone());
+            } else {
+                lowPriProcesses.add(Main.ProcessLink[i].clone());
+            }
+        }
+
+        // Create combined display queue
+        Queue<Process> combinedDisplayQueue = new Queue<>();
+
+        // Run RR on high priority processes
+        if (!highPriProcesses.isEmpty()) {
+            Main.numProcess = highPriProcesses.size();
+            Main.ProcessLink = new int[Main.numProcess][Main.attributes];
+            for (int i = 0; i < highPriProcesses.size(); i++) {
+                Main.ProcessLink[i] = highPriProcesses.get(i);
+            }
+            RR.rrScheduling();
+            // Update highPriProcesses with results
+            for (int i = 0; i < highPriProcesses.size(); i++) {
+                highPriProcesses.set(i, Main.ProcessLink[i].clone());
+            }
+        }
+
+        // Run FCFS on low priority processes
+        if (!lowPriProcesses.isEmpty()) {
+            Main.numProcess = lowPriProcesses.size();
+            Main.ProcessLink = new int[Main.numProcess][Main.attributes];
+            for (int i = 0; i < lowPriProcesses.size(); i++) {
+                Main.ProcessLink[i] = lowPriProcesses.get(i);
+            }
+            FCFS fcfs = new FCFS();
+            fcfs.fcfsScheduling();
+            // Update lowPriProcesses with results
+            for (int i = 0; i < lowPriProcesses.size(); i++) {
+                lowPriProcesses.set(i, Main.ProcessLink[i].clone());
+            }
+        }
+
+        // Restore original ProcessLink size and merge results
+        Main.numProcess = originalProcessLink.length;
+        Main.ProcessLink = new int[Main.numProcess][Main.attributes];
+        int highIndex = 0, lowIndex = 0;
+        for (int i = 0; i < Main.numProcess; i++) {
+            if (originalProcessLink[i][Field.priority.getValue()] > 0 && highIndex < highPriProcesses.size()) {
+                // Copy updated high pri process
+                Main.ProcessLink[i] = highPriProcesses.get(highIndex).clone();
+                highIndex++;
+            } else if (lowIndex < lowPriProcesses.size()) {
+                // Copy updated low pri process
+                Main.ProcessLink[i] = lowPriProcesses.get(lowIndex).clone();
+                lowIndex++;
+            }
+        }
+
+        // For Gantt, since individual schedulers have their own, we might need to combine queues
+        // For now, display a simple message or combine manually
+        System.out.println("MLQ Scheduling completed. Gantt chart display needs manual combination.");
     }
 }
