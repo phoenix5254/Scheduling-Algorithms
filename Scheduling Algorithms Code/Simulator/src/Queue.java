@@ -1,10 +1,13 @@
-public class Queue <t extends Process> {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Queue<t extends Process> {
 
     private Node<t> Front;
     private Node<t> Rear;
 
-    private static int count=0;
-
+    private static int count = 0;
 
     public Queue() {
         Front = null;
@@ -26,8 +29,10 @@ public class Queue <t extends Process> {
     public void setRear(Node<t> n) {
         Rear = n;
     }
-    public int getCount(){ return count;}
 
+    public int getCount() {
+        return count;
+    }
 
     public void Enqueue(t process) {// Add a new process to the queue
         try {
@@ -71,7 +76,7 @@ public class Queue <t extends Process> {
             return Front.getData();
         }
     }
-    
+
     public Process peek() {
         if (Front == null) {
             System.out.println("The Queue is empty, cannot peek.");
@@ -80,88 +85,98 @@ public class Queue <t extends Process> {
             return Front.getData();
         }
     }
-    
+
     public boolean isEmpty() {
-        return Front == null; //return true in null else returns falsw
-    }
-   public void displayGanttFromQueue(int choice, int totalTimeUnits) {
-    if (Front == null) {
-        System.out.println("The Queue is empty. Nothing to display.");
-        return;
+        return Front == null; // return true in null else returns falsw
     }
 
-    // 1. Initialize variables
-    StringBuilder topBorder = new StringBuilder();
-    StringBuilder ganttBar = new StringBuilder();
-    StringBuilder bottomBorder = new StringBuilder();
-    StringBuilder timeMarkers = new StringBuilder();
-    int cumulativeTime = 0;
-    
-    // Define a fixed width for each process segment for perfect alignment.
-    // Width 4 gives us space for "| Px |" or "| Pxx |" and the time marker below.
-    final int segmentWidth = 4; 
-    
-    // Start at time 0
-    timeMarkers.append("0"); 
-
-    // Use a temporary pointer to traverse the queue
-    Node<t> current = Front; 
-
-    System.out.println("\n--- CPU Execution Sequence (Time Unit = 1) ---");
-    
-    // 2. Traverse and build the output strings
-    while (current != null) {
-        Process processData = current.getData();
-        int processID = processData.getId(); // Requires Process.getId()
-        
-        // --- Build the Gantt Bar and Borders ---
-        ganttBar.append("|");
-        
-        // Create the ID string. Use 'Px' format, centered within the segmentWidth.
-        String idString = "P" + processID; 
-        
-        // Calculate internal padding to center the ID string within the space of (segmentWidth - 1).
-        // Example: Width 4 -> Space of 3. ID 'P1' (2 chars). Left padding 1, Right padding 0.
-        int dataLength = idString.length();
-        int availableSpace = segmentWidth - 1; // 3 characters available between the pipes
-        int leftPadding = (availableSpace - dataLength) / 2;
-        int rightPadding = availableSpace - dataLength - leftPadding;
-
-        // Apply padding: (left spaces) + (ID) + (right spaces)
-        ganttBar.append(" ".repeat(leftPadding))
-                .append(idString)
-                .append(" ".repeat(rightPadding));
-
-        // Append the separators
-        topBorder.append("-".repeat(segmentWidth));
-        bottomBorder.append("-".repeat(segmentWidth));
-        
-        // --- Build the Time Markers ---
-        cumulativeTime += choice; // Increment time by 2 if utilized by MLQ, else use 1 time unit
-        
-        // The total padding needed is the full segmentWidth, minus the length of the new time number.
-        String cumulativeTimeString = String.valueOf(cumulativeTime);
-        int paddingLength = segmentWidth - cumulativeTimeString.length();
-        
-        // Append the time marker with padding
-        timeMarkers.append(String.format("%" + paddingLength + "s", cumulativeTimeString));
-        // Add 1 to the cumulative time before finishing
-        if (cumulativeTime == totalTimeUnits){
-            cumulativeTime++;
-            cumulativeTimeString = String.valueOf(cumulativeTime);
+    public void displayGanttFromQueue(int choice, int totalTimeUnits) {
+        if (Front == null) {
+            System.out.println("The Queue is empty. Nothing to display.");
+            return;
         }
-        current = current.getNextNode();
+
+        final int boxWidth = 5; // width of each process box inside the bars: | P1 |
+        final int segWidth = boxWidth + 1; // distance between two '|' boundaries
+
+        StringBuilder gantt = new StringBuilder();
+        StringBuilder top = new StringBuilder();
+        StringBuilder bottom = new StringBuilder();
+
+        List<Integer> boundaryPositions = new ArrayList<>();
+
+        int currentTime = 0;
+
+        Node<t> cur = Front;
+
+        System.out.println("\n--- CPU Execution Sequence (Time Unit = 1) ---");
+
+        while (cur != null) {
+
+            // record where this boundary starts
+            boundaryPositions.add(gantt.length());
+
+            // left boundary
+            gantt.append("|");
+
+            // process ID centered inside the box
+            Process p = cur.getData();
+            String id = "P" + p.getId();
+            int leftPad = (boxWidth - id.length()) / 2;
+            int rightPad = boxWidth - id.length() - leftPad;
+
+            gantt.append(" ".repeat(leftPad))
+                    .append(id)
+                    .append(" ".repeat(rightPad));
+
+            // advance time
+            currentTime += choice;
+
+            cur = cur.getNextNode();
+        }
+
+        // final boundary
+        boundaryPositions.add(gantt.length());
+        gantt.append("|");
+
+        // borders sized exactly to match the gantt bar
+        top.append("-".repeat(gantt.length()));
+        bottom.append("-".repeat(gantt.length()));
+
+        // ==============================
+        // BUILD TIME MARKER LINE
+        // ==============================
+        char[] timeLine = new char[gantt.length()];
+        Arrays.fill(timeLine, ' ');
+
+        // time 0 under the first boundary
+        put(timeLine, boundaryPositions.get(0), "0");
+
+        int t = 0;
+
+        // times under each boundary
+        for (int i = 1; i < boundaryPositions.size(); i++) {
+            t += choice; // each segment increases by choice
+            put(timeLine, boundaryPositions.get(i), String.valueOf(t));
+        }
+
+        // PRINT SEQUENCE
+        System.out.println(top.toString());
+        System.out.println(gantt.toString());
+        System.out.println(bottom.toString());
+        System.out.println(new String(timeLine));
+        System.out.println("\n **Total Time Units Displayed**: **" + currentTime + "**");
     }
-    
-    // 3. Print the final results
-    ganttBar.append("|");
-    
-    System.out.println(topBorder.toString()); 
-    System.out.println(ganttBar.toString());
-    System.out.println(bottomBorder.toString()); 
-    System.out.println(timeMarkers.toString());
-    
-    System.out.println("\n **Total Time Units Displayed**: **" + cumulativeTime + "**");
+
+    private void put(char[] arr, int pos, String s) {
+    // Center the string at the given position
+    int start = pos - s.length() / 2;
+    for (int i = 0; i < s.length(); i++) {
+        int idx = start + i;
+        if (idx >= 0 && idx < arr.length) {
+            arr[idx] = s.charAt(i);
+        }
+    }
 }
 
     public Main get(int i) {
@@ -169,5 +184,4 @@ public class Queue <t extends Process> {
         throw new UnsupportedOperationException("Unimplemented method 'get'");
     }
 
-    
 }

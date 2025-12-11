@@ -121,11 +121,10 @@ public class Main {
                     ProcessLink[x][Field.priority.getValue()] = highPri;
 
                     // defensive/default initializations
-                   ProcessLink[x][Field.waitingTime.getValue()] = 0;
-                   ProcessLink[x][Field.turnAroundTime.getValue()] = 0;
-                   ProcessLink[x][Field.startTime.getValue()] = 0;
-                   ProcessLink[x][Field.responseTime.getValue()] = 0; 
-
+                    ProcessLink[x][Field.waitingTime.getValue()] = 0;
+                    ProcessLink[x][Field.turnAroundTime.getValue()] = 0;
+                    ProcessLink[x][Field.startTime.getValue()] = 0;
+                    ProcessLink[x][Field.responseTime.getValue()] = 0;
 
                     pID++;
                     break;
@@ -142,39 +141,22 @@ public class Main {
         }
     }
 
- /*  static int[][] sort() {
-        if (ProcessLink == null || ProcessLink.length <= 1)
-            return ProcessLink;
-        int n = ProcessLink.length;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                if (ProcessLink[j][Field.arrivalTime.getValue()] > ProcessLink[j + 1][Field.arrivalTime.getValue()]) {
-                    int[] temp = ProcessLink[j];
-                    ProcessLink[j] = ProcessLink[j + 1];
-                    ProcessLink[j + 1] = temp;
-                }
-            }
-        }
-        return ProcessLink;
-    }
-    */
-
     static String toStringAllProcesses(float[] avg) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Process:\n");
+        sb.append("Process:");
         if (ProcessLink == null || ProcessLink.length == 0) {
             sb.append("No processes.\n");
             return sb.toString();
         }
         for (int p = 0; p < ProcessLink.length; p++) {
-            sb.append("\nProcess ID:"+ProcessLink[p][Field.id.getValue()]);
-            sb.append(" | Arrival Time: " + ProcessLink[p][Field.arrivalTime.getValue()]);
-            sb.append(" | Burst Time: " + ProcessLink[p][Field.burstTime.getValue()]);
+            sb.append("\nProcess ID:" + ProcessLink[p][Field.id.getValue()]);
+            sb.append(" | Arrival: " + ProcessLink[p][Field.arrivalTime.getValue()]);
+            sb.append(" | Burst: " + ProcessLink[p][Field.burstTime.getValue()]);
             sb.append(" | Priority: " + ProcessLink[p][Field.priority.getValue()]);
-            sb.append(" | Waiting Time: " + ProcessLink[p][Field.waitingTime.getValue()]);
-            sb.append(" | Turn Around Time: " + ProcessLink[p][Field.turnAroundTime.getValue()]);
-            sb.append(" | Start Time: " + ProcessLink[p][Field.startTime.getValue()]);
-            sb.append(" | Response Time: " + ProcessLink[p][Field.responseTime.getValue()]);
+            sb.append(" | Waiting: " + ProcessLink[p][Field.waitingTime.getValue()]);
+            sb.append(" | TurnAround: " + ProcessLink[p][Field.turnAroundTime.getValue()]);
+            sb.append(" | Start: " + ProcessLink[p][Field.startTime.getValue()]);
+            sb.append(" | Response: " + ProcessLink[p][Field.responseTime.getValue()]);
             sb.append("\n");
         }
         if (avg != null && avg.length >= 3) {
@@ -204,42 +186,41 @@ public class Main {
         avgWT /= numProcess;
         avgTT /= numProcess;
         avgRT /= numProcess;
-         // Round to 2 decimal places
+        // Round to 2 decimal places
         avgWT = Math.round(avgWT * 100f) / 100f;
         avgTT = Math.round(avgTT * 100f) / 100f;
         avgRT = Math.round(avgRT * 100f) / 100f;
-        float[] result= find_Util_Throughput();
+        float[] result = find_Util_Throughput();
         return new float[] { avgWT, avgTT, avgRT, result[0], result[1] };
     }
-   public static float[] find_Util_Throughput() {
 
-    float totalBurst = 0;
-    float totalFinishTime = 0;
+    public static float[] find_Util_Throughput() {
 
-    for (int i = 0; i < numProcess; i++) {
-        totalBurst += ProcessLink[i][Field.burstTime.getValue()];
-        totalFinishTime = Math.max(totalFinishTime, ProcessLink[i][Field.turnAroundTime.getValue()]);
+        float totalBurst = 0;
+        float totalFinishTime = 0;
+
+        for (int i = 0; i < numProcess; i++) {
+            totalBurst += ProcessLink[i][Field.burstTime.getValue()];
+            totalFinishTime = Math.max(totalFinishTime, ProcessLink[i][Field.turnAroundTime.getValue()]);
+        }
+
+        float cpuUtil = (totalBurst / totalFinishTime) * 100f;
+        float throughput = numProcess / totalFinishTime;
+
+        cpuUtil = Math.round(cpuUtil * 100f) / 100f;
+        throughput = Math.round(throughput * 100f) / 100f;
+
+        return new float[] { cpuUtil, throughput };
     }
 
-    float cpuUtil = (totalBurst / totalFinishTime) * 100f;
-    float throughput = numProcess / totalFinishTime;
-
-    cpuUtil = Math.round(cpuUtil * 100f) / 100f;
-    throughput = Math.round(throughput * 100f) / 100f;
-
-    return new float[]{cpuUtil, throughput};
-}
-
-
-   
     static void selectScheduler() {
         if (numProcess <= 0) {
             System.out.println("No processes to schedule. Exiting scheduler selection.");
             return;
         }
-        int [][] copy= ProcessLink; // backup original ProcessLink
+        int[][] copy = ProcessLink; // backup original ProcessLink
         do {
-            ProcessLink= copy; // restore original before each scheduling
+            ProcessLink = copy; // restore original before each scheduling
             try {
                 System.out.println("\nSelect a Scheduling Algorithm:");
                 System.out.println("1. First-Come, First-Served (FCFS)");
@@ -272,16 +253,8 @@ public class Main {
                         break;
                     case 4: // MQ
                         System.out.println("\n--- MLQ Results ---");
-                        Queue<Process> mlqProcessQueue = new Queue<>();
-                        for (int i = 0; i < numProcess; i++) {
-                            Process proc = new Process();
-                            proc.setId(ProcessLink[i][Field.id.getValue()]);
-                            proc.setArrivalTime(ProcessLink[i][Field.arrivalTime.getValue()]);
-                            proc.setBurstTime(ProcessLink[i][Field.burstTime.getValue()]);
-                            proc.setPriority(ProcessLink[i][Field.priority.getValue()]);
-                            mlqProcessQueue.Enqueue(proc);
-                        }
-                        MLQ.mlqScheduling(mlqProcessQueue, timeQuantum);
+                        MLQ mlq = new MLQ();
+                        mlq.mlqScheduling();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
                     case 5:
@@ -296,17 +269,19 @@ public class Main {
             }
         } while (true);
     }
-
+   
+static boolean usePriorityFlag = false; // Track if user wanted priorities
     static void mainPage() {
         NumOfProcess();
         if (numProcess > 0) {
-            priority(numProcess, isPriority());
+            usePriorityFlag=isPriority();
+            priority(numProcess, usePriorityFlag);
             System.out.println("\nInitial Input:");
             System.out.println(toStringAllProcesses());
             selectScheduler();
         } else {
             System.out.println("No processes entered. Exiting.");
         }
-        System.out.println("Simulation completed.");
+        System.out.println("Simulation completed.");
     }
 }

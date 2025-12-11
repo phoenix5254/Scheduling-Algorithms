@@ -113,7 +113,9 @@ public class SJF extends Process {
          }
       }
       // Print the queued processes (displayQueue uses your Queue implementation)
-         displayQueue.displayGanttFromQueue(1, time);
+      System.out.println("\n===== SJF Timeline Events =====");   
+      displayQueue.displayGanttFromQueue(1, time);
+      System.out.println("Details of Processes:");   
    }
 
    }

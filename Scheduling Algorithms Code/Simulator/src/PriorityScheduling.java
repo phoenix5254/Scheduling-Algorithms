@@ -1,100 +1,114 @@
+//PreemptivePriority.java
+//Implementation of the Pre-Emptive Priority Scheduling Algorithm
+//Lower priority number = higher schdeuling priority
+
 public class PriorityScheduling extends Process {
+    private int[][] procArr;
+
+
+public void PriorityScheduler() {
+    // Builds a list of processes
+    java.util.List<int[]> procList = new java.util.ArrayList<>();
+    for (int i = 0; i < Main.numProcess; i++) {
+        int pid = Main.ProcessLink[i][Field.id.getValue()];
+        int at = Main.ProcessLink[i][Field.arrivalTime.getValue()];
+        int bt = Main.ProcessLink[i][Field.burstTime.getValue()];
+        int pri = Main.ProcessLink[i][Field.priority.getValue()];
+        procList.add(new int[] { pid, at, bt, pri, bt }); // last element = remaining time
+    }
+
     int time = 0;
+    int remaining = procList.size(); // number of unfinished processes
+    Queue<Process> displayQueue = new Queue<>();
+    java.util.Set<Integer> started = new java.util.HashSet<>(); // track pids that already started
 
-    public void PriorityScheduler() {
-        // --- 1. Initialization and Setup ---
-
-        // Use a list of Process objects to manage state (remaining burst time, start
-        // time)
-        java.util.List<Process> processList = new java.util.ArrayList<>();
-
-        // Convert the static ProcessLink array into a list of mutable Process objects.
+    // helper to find Main.ProcessLink row index by pid
+    java.util.function.IntUnaryOperator findIndex = (pid) -> {
         for (int i = 0; i < Main.numProcess; i++) {
-            // Use the constructor that loads data from the existing ProcessLink row
-            Process p = new Process(Main.ProcessLink[i]);
-            processList.add(p);
+            if (Main.ProcessLink[i][Field.id.getValue()] == pid) return i;
+        }
+        return -1;
+    };
+
+    // Loops until all processes are finished
+    while (remaining > 0) {
+        // Collecting the processes that have arrived
+        java.util.List<int[]> ready = new java.util.ArrayList<>();
+        for (int[] row : procList) {
+            if (row != null && row[1] <= time && row[4] > 0) {
+                ready.add(row);
+            }
         }
 
-        int completedCount = 0;
-        Queue<Process> displayQueue = new Queue<>();
+        if (ready.isEmpty()) {
+            time++;
+            continue;
+        }
 
-        // --- 2. Main Scheduling Loop ---
+        // Choose highest priority (lowest pri value)
+        int[] chosen = ready.get(0);
+        for (int[] cand : ready) {
+            if (cand[3] < chosen[3] ||
+                    (cand[3] == chosen[3] && cand[1] < chosen[1]) ||
+                    (cand[3] == chosen[3] && cand[1] == chosen[1] && cand[0] < chosen[0])) {
+                chosen = cand;
+            }
+        }
 
-        while (completedCount < processList.size()) {
+        int pid = chosen[0];
+        int mainIdx = findIndex.applyAsInt(pid);
+        if (mainIdx == -1) {
+            // defensive: skip if mapping broken
+            time++;
+            continue;
+        }
 
-            // A. Find the Highest Priority Ready Process (Manual Selection)
-            int minPriority = Integer.MAX_VALUE;
-            Process selectedProcess = null;
+        // first time process runs -> record response/start times (only once)
+        if (!started.contains(pid)) {
+            int response = time - chosen[1];
+            Main.ProcessLink[mainIdx][Field.responseTime.getValue()] = response;
+            Main.ProcessLink[mainIdx][Field.startTime.getValue()] = time;
+            started.add(pid);
+        }
 
-            for (Process p : processList) {
-                // Check if the process has arrived AND still has remaining burst time
-                if (p.getBurstTime() > 0 && p.getArrivalTime() <= time) {
-                    // Preemptive check: Smaller number is HIGHER priority
-                    if (p.getPriority() < minPriority) {
-                        minPriority = p.getPriority();
-                        selectedProcess = p;
-                        displayQueue.Enqueue(p);
+        // Create process object representing the current execution unit and record Gantt
+        Process procUnit = new Process(Main.ProcessLink[mainIdx]);
+        displayQueue.Enqueue(procUnit);
 
-                    }
-                    // Optional: Tie-breaker (e.g., using FCFS for equal priority)
-                    // If p.getPriority() == minPriority, do nothing, as the process
-                    // that was found first (and thus arrived earlier or has a lower index) wins.
+        // Run for 1 time unit (preemptive)
+        chosen[4]--; // Decrease the remaining time
+        time++;
+
+        // If process is finished after this unit:
+        if (chosen[4] == 0) {
+            int completion = time;
+            int tat = completion - chosen[1];
+            int wt = tat - chosen[2];
+            int rt = Main.ProcessLink[mainIdx][Field.responseTime.getValue()];
+
+            // Save metrics into process object (single final object)
+            Process finalProc = new Process(Main.ProcessLink[mainIdx]);
+            finalProc.setTurnAroundTime(tat);
+            finalProc.setWaitingTime(wt);
+            finalProc.setResponseTime(rt);
+
+            // Update the Main.ProcessLink table for reporting (if needed)
+            addToProcessList(finalProc);
+
+            // Mark process as finished in procList
+            for (int i = 0; i < procList.size(); i++) {
+                int[] r = procList.get(i);
+                if (r != null && r[0] == chosen[0]) {
+                    procList.set(i, null);
+                    remaining--;
+                    break;
                 }
             }
-
-            // 1. Handle Idle Time and check if a process was selected
-            if (selectedProcess == null) {
-                // ... (Your existing idle time logic goes here) ...
-                continue;
-            }
-
-            // 2. Set Start Time (First time the CPU runs it)
-            if (selectedProcess.getStartTime() == 0) { // Assuming 0 indicates uninitialized
-                selectedProcess.setStartTime(time);
-
-                // Calculate Response Time
-                selectedProcess.setResponseTime(selectedProcess.getStartTime() - selectedProcess.getArrivalTime());
-                super.addToProcessList(selectedProcess); // Initial update
-            }
-
-            // 3. Enqueue the process for the current time unit (records Pn for time 'time')
-            // We MUST enqueue a copy to prevent subsequent mutations (like BT=0) from
-            // affecting history.
-            // Assuming your Process class has a copy constructor:
-            Process processUnitToDisplay = new Process(selectedProcess);
-            displayQueue.Enqueue(processUnitToDisplay);
-
-            // 4. Execute for 1 time unit and advance clock
-            int remainingBurst = selectedProcess.getBurstTime() - 1;
-            selectedProcess.setBurstTime(remainingBurst); // Update remaining burst time
-            time++; // Advance clock by 1
-            // D. Completion Check
-            if (remainingBurst == 0) {
-                completedCount++;
-
-                int completionTime = time;
-
-                // Get the original burst time from the static array for correct TAT/WT
-                // calculation
-                int originalBurstTime = Main.ProcessLink[selectedProcess.getId() - 1][Field.burstTime.getValue()];
-
-                // Turnaround Time = Completion Time - Arrival Time
-                int tat = completionTime - selectedProcess.getArrivalTime();
-                selectedProcess.setTurnAroundTime(tat);
-
-                // Waiting Time = Turnaround Time - Original Burst Time
-                int wt = tat - originalBurstTime;
-                selectedProcess.setWaitingTime(wt);
-
-                // Final update the static ProcessLink array with completion metrics
-                super.addToProcessList(selectedProcess);
-            }
-
-            // The loop repeats, and the selection logic (A) checks for preemption
-            // at the new time unit.
         }
-
-        // --- 3. Display Gantt Chart ---
-        displayQueue.displayGanttFromQueue(1, time);
     }
+
+    System.out.println("\n===== Priority Timeline Events =====");
+    displayQueue.displayGanttFromQueue(1, time);
+    System.out.println("Details of Processes:");
+}
 }

@@ -118,11 +118,6 @@ public class Process {
     public Integer getStartTime() { return startTime; }
     public void setStartTime(Integer startTime) { this.startTime = startTime; }
 
-    // view
-    public void ViewProcessByObject() {
-        System.out.println("Process ID: " + id + " Arrival Time: " + arrivalTime + " Burst Time: " + burstTime + " Priority: " + priority);
-    }
-
     /**
      * Update Main.ProcessLink row for the given Process process.
      * Matches by process ID (Field.id). Writes:

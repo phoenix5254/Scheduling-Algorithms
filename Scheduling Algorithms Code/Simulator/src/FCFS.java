@@ -47,26 +47,9 @@ public class FCFS extends Process {
             displayQueue.Enqueue(p);
             }
         }
-
-        displayQueue.displayGanttFromQueue(1, time);
-    }
-
-    /*private void printTimeline(Queue<Process> displayQueue) {
         System.out.println("\n===== FCFS Timeline Events =====");
-
-        Node<Process> cur = displayQueue.getFront();
-        while (cur != null) {
-            Process p = cur.getData();
-            System.out.println(
-                    "P" + p.getId() +
-                    " | Arrival: " + p.getArrivalTime() +
-                    " | Burst: " + p.getBurstTime() +
-                    " | Start: " + p.getStartTime() +
-                    " | Waiting: " + p.getWaitingTime() +
-                    " | Turnaround: " + p.getTurnAroundTime() +
-                    " | Response: " + p.getResponseTime()
-            );
-            cur = cur.getNextNode();
-        }
-    }*/
+        displayQueue.displayGanttFromQueue(1, time);
+        System.out.println("Details of Processes:");
+       
+    }
 }
