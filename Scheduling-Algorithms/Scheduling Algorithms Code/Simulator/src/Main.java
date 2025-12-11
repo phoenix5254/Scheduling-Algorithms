@@ -9,11 +9,13 @@ public class Main {
         scanner.close();
     }
 
+
     static int[][] ProcessLink; // 2D array to store processes
     static final int attributes = 9; // Number of attributes in Process
     static int numProcess = -1;
     static int choice = 0; // to track which scheduler is selected
     static int timeQuantum = 2; // Default time quantum for MLQ (can be changed as needed)
+    static boolean usePriorityFlag = false; // Track if user wanted priorities
 
     int getNumProcess() {
         return numProcess;
@@ -270,7 +272,7 @@ public class Main {
                         ps.PriorityScheduler();
                         System.out.println(toStringAllProcesses(findAllAverages()));
                         break;
-                    case 4: // MLQ
+                    case 4: // MQ
                         System.out.println("\n--- MLQ Results ---");
                         MLQ mlq = new MLQ();
                         mlq.mlqScheduling();
@@ -289,10 +291,12 @@ public class Main {
         } while (true);
     }
 
+
     static void mainPage() {
         NumOfProcess();
         if (numProcess > 0) {
-            priority(numProcess, isPriority());
+            usePriorityFlag = isPriority();
+            priority(numProcess, usePriorityFlag);
             System.out.println("\nInitial Input:");
             System.out.println(toStringAllProcesses());
             selectScheduler();

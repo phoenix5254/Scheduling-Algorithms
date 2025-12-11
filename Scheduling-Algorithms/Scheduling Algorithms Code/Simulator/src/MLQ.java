@@ -1,3 +1,4 @@
+
 public class MLQ extends Process
 {
     public void mlqScheduling() {
@@ -7,7 +8,15 @@ public class MLQ extends Process
             originalProcessLink[i] = Main.ProcessLink[i].clone();
         }
 
-        // Divide processes into high priority (priority > 0) and low priority (priority == 0)
+        // Check if user wanted priorities
+        if (!Main.usePriorityFlag) {
+            // If no priorities were used, run FCFS on all processes
+            FCFS fcfs = new FCFS();
+            fcfs.fcfsScheduling();
+            return;
+        }
+
+        // Traditional MLQ behavior: Divide processes into high priority (priority > 0) and low priority (priority == 0)
         java.util.List<int[]> highPriProcesses = new java.util.ArrayList<>();
         java.util.List<int[]> lowPriProcesses = new java.util.ArrayList<>();
         for (int i = 0; i < Main.numProcess; i++) {
@@ -65,6 +74,9 @@ public class MLQ extends Process
                 lowIndex++;
             }
         }
+
+
+
 
         // For Gantt, since individual schedulers have their own, we might need to combine queues
         // For now, display a simple message or combine manually
