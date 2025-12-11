@@ -1,6 +1,5 @@
 
 public class SJF extends Process {
-   private int[][] sjf;
    private int id;
 
    Queue<Process> queue = new Queue<Process>();
@@ -11,24 +10,12 @@ public class SJF extends Process {
 
    public SJF(int at, int bt) {
       super(at, bt);
-      sjf = Main.ProcessLink; // Copying Main.ProcessLink to sjf array
    }
 
    public SJF(int at, int bt, int id) {
       super(at, bt);
       this.id = id;
-      sjf = Main.ProcessLink; // Copying Main.ProcessLink to sjf array
    }
-
-   public SJF(SJF obj) {
-      super(obj);
-   }
-
-   public SJF(int[][] ProcessLink) {
-      super(Main.ProcessLink);
-      sjf = Main.ProcessLink;
-   }
-
    // inside SJF class
    @Override
    public int getId() {
@@ -46,7 +33,7 @@ public class SJF extends Process {
          int at = Main.ProcessLink[i][Field.arrivalTime.getValue()];
          int bt = Main.ProcessLink[i][Field.burstTime.getValue()];
          int pid = Main.ProcessLink[i][Field.id.getValue()];
-         procList.add(new int[] { pid, at, bt }); // store original index as 4th element (optional)
+         procList.add(new int[] { pid, at, bt }); 
       }
 
       int remaining = procList.size();
@@ -65,7 +52,7 @@ public class SJF extends Process {
          }
 
          if (ready.isEmpty()) {
-            // advance time to next arrival (more efficient than time++)
+            // advance time to next arrival 
             int nextArrival = Integer.MAX_VALUE;
             for (int[] row : procList) {
                if (row != null && row[1] < nextArrival) {
@@ -80,25 +67,26 @@ public class SJF extends Process {
             continue;
          }
 
-         // Choose shortest job (min burst). Tie-breaker: earlier arrival, then lower
-         // pid.
+         // Choose shortest job (min burst). Tie-breaker: earlier arrival, then lower pid.
          int[] chosen = ready.get(0);
-         for (int[] cand : ready) {
-            if (cand[2] < chosen[2] ||
-                  (cand[2] == chosen[2] && cand[1] < chosen[1]) ||
-                  (cand[2] == chosen[2] && cand[1] == chosen[1] && cand[0] < chosen[0])) {
-               chosen = cand;
+         for (int[] current : ready) {
+            if (current[2] < chosen[2] ||
+                  (current[2] == chosen[2] && current[1] < chosen[1]) ||
+                  (current[2] == chosen[2] && current[1] == chosen[1] && current[0] < chosen[0])) {
+               chosen = current;
             }
          }
 
-         // Create an SJF process object using chosen values.
+         // Create a SJF process object using chosen values.
          // Note: this constructor sets this.id (SJF.id) so getId() override (below) will
          // return it.
          SJF proc = new SJF(chosen[1], chosen[2], chosen[0]);
          proc.setStartTime(time);
 
          // enqueue for display (do NOT immediately Dequeue - we want history)
-         displayQueue.Enqueue(proc);
+         for (int i = 0; i < proc.getBurstTime(); i++) {
+            displayQueue.Enqueue(proc);
+         }
 
          // run process (non-preemptive SJF)
          time += proc.getBurstTime();
@@ -124,37 +112,10 @@ public class SJF extends Process {
             }
          }
       }
-
       // Print the queued processes (displayQueue uses your Queue implementation)
-      if (displayQueue.getFront() != null) {
-         // iterate nodes via getFront() and next-node chain
-         Node<Process> cur = displayQueue.getFront();
-         while (cur != null) {
-            Process p = cur.getData();
-            // Use your Process.toStringAllProcesses() or custom printing for each proc:
-            // I assume you have an instance method or use Main.ProcessLink for full table.
-            // We'll print the per-process stats we've computed:
-            System.out.println("Process ID: " + p.getId()
-                  + " | Arrival: " + p.getArrivalTime()
-                  + " | Burst: " + p.getBurstTime()
-                  + " | Start: " + p.getStartTime()
-                  + " | Waiting: " + p.getWaitingTime()
-                  + " | Turnaround: " + p.getTurnAroundTime()
-                  + " | Response: " + p.getResponseTime());
-            cur = cur.getNextNode();
-         }
-      } else {
-         System.out.println("There are no processes in the queue.");
-      }
+      System.out.println("\n===== SJF Timeline Events =====");   
+      displayQueue.displayGanttFromQueue(1, time);
+      System.out.println("Details of Processes:");   
    }
 
-   public void addToProcessList(SJF process) {
-      for (int i = 0; i < Main.numProcess; i++) {
-         if (Main.ProcessLink[i][Field.id.getValue()] == process.getId()) {
-            Main.ProcessLink[i][Field.turnAroundTime.getValue()] = process.getTurnAroundTime();
-            Main.ProcessLink[i][Field.waitingTime.getValue()] = process.getWaitingTime();
-            Main.ProcessLink[i][Field.responseTime.getValue()] = process.getResponseTime();
-         }
-      }
    }
-}
