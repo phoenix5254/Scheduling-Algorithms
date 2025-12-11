@@ -70,7 +70,7 @@ public class RR extends Process {
             }
         }
 
-        displayQueue.displayGanttFromQueue(1, time);
+        //displayQueue.displayGanttFromQueue(1, time);
     }
 
 }
